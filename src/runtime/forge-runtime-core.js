@@ -107,11 +107,11 @@
 
   function bubbleBox(scene, source, measureText, text, options = {}) {
     if (!source) return null;
-    const fontSize = options.fontSize || 16;
-    const maxWidth = Math.min(options.maxWidth || 520, Math.max(260, scene.width - 32));
-    const lines = wrapText(text, maxWidth - 32, measureText).slice(0, options.maxLines || 5);
+    const fontSize = options.fontSize || 23;
+    const maxWidth = Math.min(options.maxWidth || 700, Math.max(320, scene.width - 32));
+    const lines = wrapText(text, maxWidth - 40, measureText).slice(0, options.maxLines || 5);
     const width = Math.min(maxWidth, Math.max(230, ...lines.map((line) => measureText(line) + 32)));
-    const height = 40 + lines.length * (fontSize + 5);
+    const height = 48 + lines.length * (fontSize + 7);
     const sourceCenter = source.x + source.w / 2;
     const y = clamp(source.y - height - 16, 12, Math.max(12, scene.height - height - 12));
     const x = clamp(sourceCenter - width / 2, 12, Math.max(12, scene.width - width - 12));

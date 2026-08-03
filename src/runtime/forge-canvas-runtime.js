@@ -464,10 +464,13 @@
       const object = (state.scene.objects || []).find((item) => item.id === payload.objectId);
       const anchor = (state.scene.objects || []).find((item) => item.id === payload.anchorId) || core.dialogueAnchorFor(state.scene, object);
       const source = anchor || object;
-      const box = core.bubbleBox(state.scene, source, (text) => ctx.measureText(text).width, payload.text);
-      if (!box) return;
       ctx.save();
-      ctx.font = "16px Segoe UI";
+      ctx.font = "23px Segoe UI";
+      const box = core.bubbleBox(state.scene, source, (text) => ctx.measureText(text).width, payload.text);
+      if (!box) {
+        ctx.restore();
+        return;
+      }
       ctx.fillStyle = "rgba(15, 10, 6, .94)";
       ctx.strokeStyle = "#f4d58a";
       ctx.lineWidth = 2;
@@ -482,11 +485,11 @@
       ctx.fill();
       ctx.stroke();
       ctx.fillStyle = "#f4d58a";
-      ctx.font = "700 12px Segoe UI";
-      ctx.fillText(payload.speaker || "Dialogue", box.x + 16, box.y + 20);
+      ctx.font = "700 16px Segoe UI";
+      ctx.fillText(payload.speaker || "Dialogue", box.x + 20, box.y + 26);
       ctx.fillStyle = "#fff6df";
-      ctx.font = "16px Segoe UI";
-      box.lines.forEach((line, index) => ctx.fillText(line, box.x + 16, box.y + 46 + index * 21));
+      ctx.font = "23px Segoe UI";
+      box.lines.forEach((line, index) => ctx.fillText(line, box.x + 20, box.y + 58 + index * 30));
       ctx.restore();
     }
 
@@ -598,7 +601,7 @@
       for (const action of spec.actors || []) {
         const object = (state.scene.objects || []).find((candidate) => candidate.id === action.objectId);
         if (!object) continue;
-        event.restores.push({ object, animationState: object.animationState, hiddenInPlayable: object.hiddenInPlayable });
+        event.restores.push({ object, animationState: object.animationState, hiddenInPlayable: object.hiddenInPlayable, restore: action.restore !== false });
         if (action.state) {
           object.animationState = action.state;
           object.animationStartedAt = startedAt;
@@ -612,6 +615,7 @@
     function finishEvent(event) {
       state.activeEvents = state.activeEvents.filter((candidate) => candidate !== event);
       for (const restore of event.restores) {
+        if (!restore.restore) continue;
         restore.object.animationState = restore.animationState || "idle";
         restore.object.hiddenInPlayable = restore.hiddenInPlayable;
         restore.object.animationStartedAt = now();

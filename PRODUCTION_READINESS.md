@@ -6,7 +6,7 @@ Status: placeholder-ready
 ## Summary
 
 - Scenes: 1
-- Character models: 0/6 final
+- Character models: 0/8 final
 - Cast animation clips: 0/29 final
 - Script lines with voice: 45/49
 - Script lines with lip-sync cues: 0/49
@@ -18,7 +18,9 @@ Status: placeholder-ready
 - [art/non-final-model] Old Bottlecap is provisional, not final-approved.
 - [art/non-final-model] Scuttle is provisional, not final-approved.
 - [art/non-final-model] Dust Clump is provisional, not final-approved.
+- [art/non-final-model] Dust Reveal is provisional, not final-approved.
 - [art/non-final-model] The Grate is provisional, not final-approved.
+- [art/non-final-model] Button is provisional, not final-approved.
 - [art/non-final-cast-clip] character pip.idle is sliced-provisional.
 - [art/non-final-cast-clip] character pip.walk is sliced-provisional.
 - [art/non-final-cast-clip] character pip.turnaround is needs-generation.

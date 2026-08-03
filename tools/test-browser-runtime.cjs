@@ -116,7 +116,7 @@ async function runStandalonePlayableTest(page) {
   assert.deepStrictEqual(conformance.completionIssues, [], "shipped fixture should pass game-completion QA");
   assert.strictEqual(conformance.brambleBeforeDesk, true, "Bramble should draw behind the desk foreground occluder");
   assert.strictEqual(conformance.pipBeforeDeskAfterCrossing, true, "actor depth should flip when its baseline crosses a hotspot baseline");
-  assert.deepStrictEqual(conformance.walkPoint, { x: 1516, y: 772, areaId: "walk-band" });
+  assert.deepStrictEqual(conformance.walkPoint, { x: 1238, y: 684, areaId: "walk-band" });
   assert.strictEqual(conformance.hitId, "bramble-desk-hotspot");
 
   await drainChoices(page);
@@ -127,13 +127,20 @@ async function runStandalonePlayableTest(page) {
 
   await drainChoices(page);
   await page.click("#useMode");
-  await clickCanvasAt(page, "#game", 110, 680);
+  await clickCanvasAt(page, "#game", 145, 620);
   await waitForInventory(page, "Button");
+  await page.waitForFunction(() => {
+    const scene = window.__FORGE_RUNTIME__?.state.scene;
+    const dust = scene?.objects.find((object) => object.id === "dust-prop");
+    const reveal = scene?.objects.find((object) => object.id === "dust-reveal-prop");
+    return dust?.hiddenInPlayable === true && reveal?.hiddenInPlayable === false;
+  }, null, { timeout: 5000 });
   await drainChoices(page);
 
   await selectInventory(page, "Button");
-  await clickCanvasAt(page, "#game", 1270, 450);
+  await clickCanvasAt(page, "#game", 945, 430);
   await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.gateOpen === true, null, { timeout: 10000 });
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.state.scene.objects.find((object) => object.id === "grate-animation-prop")?.hiddenInPlayable === false, null, { timeout: 5000 });
   await drainChoices(page);
   await page.waitForFunction(() => /Act 1 complete/i.test(document.querySelector("#status")?.textContent || ""), null, { timeout: 10000 });
   const endState = await page.evaluate(() => ({

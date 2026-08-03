@@ -11,17 +11,17 @@ const lostForgeDir = path.join(lostRoot, "forge");
 
 const { buildPlayableHtml } = require("./build-playable.cjs");
 
-const sceneSize = { width: 1600, height: 900 };
+const sceneSize = { width: 1280, height: 720 };
 
 const hotspotDefs = {
-  "couch-ceiling": ["Couch-Bottom Ceiling", 192, 36, 1216, 153],
-  "dust-clump": ["Dust Clump", 32, 612, 176, 108],
-  "cubby-wall": ["Lost & Found Cubby Wall", 0, 180, 320, 432],
-  "sign-in-log": ["Sign-In Log", 576, 432, 256, 81],
-  "popcorn-boulder": ["Popcorn Kernel Boulder", 1264, 513, 208, 189],
-  "cobweb-curtain": ["Cobweb Curtain", 1456, 288, 128, 270],
-  "bramble-desk": ["Bramble's Desk", 560, 387, 384, 162],
-  "toll-gate": ["The Grate / Old Bottlecap", 1104, 279, 336, 351],
+  "couch-ceiling": ["Couch-Bottom Ceiling", 120, 36, 1040, 150],
+  "dust-clump": ["Dust Clump", 96, 575, 120, 90],
+  "cubby-wall": ["Lost & Found Cubby Wall", 36, 212, 235, 410],
+  "sign-in-log": ["Sign-In Log", 478, 386, 170, 72],
+  "popcorn-boulder": ["Popcorn Kernel Boulder", 1002, 538, 190, 134],
+  "cobweb-curtain": ["Cobweb Curtain", 1010, 290, 250, 320],
+  "bramble-desk": ["Bramble's Desk", 390, 395, 430, 170],
+  "toll-gate": ["The Grate / Old Bottlecap", 805, 278, 280, 315],
 };
 
 const lineEvents = {
@@ -96,11 +96,16 @@ function pngs(relativeDir, limit = Infinity) {
     .slice(0, limit);
 }
 
+function selectedPngs(relativeDir, names) {
+  const dir = path.join(lostRoot, relativeDir);
+  return names.map((name) => path.join(dir, name));
+}
+
 function modelFromDirs(id, name, status, dirs) {
   const frames = [];
   const animations = {};
   for (const [state, spec] of Object.entries(dirs)) {
-    const files = pngs(spec.dir, spec.count);
+    const files = spec.files ? selectedPngs(spec.dir, spec.files) : pngs(spec.dir, spec.count);
     const start = frames.length;
     frames.push(...files.map((file, index) => frameFromFile(`${id}-${state}-${String(index + 1).padStart(2, "0")}`, file)));
     animations[state] = {
@@ -173,15 +178,14 @@ function buildProject() {
   const scriptLines = buildLines();
   const audio = buildAudio();
   const castAnimationLibrary = buildCastLibrary();
+  const v2 = "art/act01-production/scene/layered-v2";
   const layers = [
-    imageLayer("background-plate", "Entry chamber background plate", "background", "art/act01-production/scene/entry-chamber-bg.png", 0, { depth: 0 }),
-    imageLayer("cubby-wall", "Lost and Underfound cubby wall", "midground", "art/act01-production/scene/entry-chamber-cubby-wall.png", 430, { depth: 10 }),
-    imageLayer("cobweb-curtain", "Cobweb curtain", "midground", "art/act01-production/scene/entry-chamber-cobweb-curtain.png", 470, { depth: 12 }),
-    imageLayer("popcorn-boulder", "Popcorn kernel boulder", "prop", "art/act01-production/scene/entry-chamber-popcorn-boulder.png", 708, { depth: 20 }),
-    imageLayer("desk-back", "Bramble desk back", "midground", "art/act01-production/scene/entry-chamber-desk-back.png", 520, { depth: 24 }),
-    imageLayer("gate-back", "Gate back plate", "midground", "art/act01-production/scene/entry-chamber-gate-back.png", 585, { depth: 25 }),
-    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", "art/act01-production/scene/entry-chamber-desk-foreground.png", 560, { depth: 40 }),
-    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", "art/act01-production/scene/entry-chamber-gate-foreground.png", 620, { depth: 42 }),
+    imageLayer("background-plate", "Entry chamber bare room background plate", "background", `${v2}/bg_room.png`, 0, { depth: 0 }),
+    imageLayer("cubby-wall", "Lost and Underfound cubby wall", "midground", `${v2}/bg_folder_wall.png`, 632, { x: 34, y: 178, w: 250, h: 466, depth: 10 }),
+    imageLayer("wall-note", "Do Not Remove wall note", "midground", `${v2}/wall_note.png`, 174, { x: 210, y: 76, w: 125, h: 110, depth: 11 }),
+    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front.png`, 584, { x: 384, y: 384, w: 450, h: 225, depth: 40 }),
+    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", `${v2}/occluders/gate_front.png`, 612, { x: 804, y: 264, w: 262, h: 336, depth: 42 }),
+    imageLayer("cobweb-curtain", "Cobweb curtain foreground", "occlusion", `${v2}/cobweb.png`, 616, { x: 972, y: 242, w: 285, h: 315, depth: 50 }),
   ];
   const characters = [
     {
@@ -222,8 +226,18 @@ function buildProject() {
       }),
       scale: 0.35,
     },
-    propModel("dust-clump-model", "Dust Clump", "idle", "art/act01-production/props/dust-clump-reveal", 6, true, 4),
-    propModel("grate-model", "The Grate", "open", "art/act01-production/props/grate-open", 8, false, 4),
+    propModel("dust-clump-model", "Dust Clump", "idle", "art/act01-production/scene/layered-v2/dust", 6, true, 1),
+    modelFromDirs("dust-reveal-model", "Dust Reveal", "provisional", {
+      reveal: { dir: "art/act01-production/scene/layered-v2/dust", files: ["reveal_01.png", "reveal_02.png", "reveal_03.png", "reveal_04.png", "reveal_05.png", "reveal_06.png"], fps: 8, loop: false },
+    }),
+    modelFromDirs("grate-model", "The Grate", "provisional", {
+      open: { dir: "art/act01-production/scene/layered-v2/grate", files: ["open_01.png", "open_02.png", "open_03.png", "open_04.png", "open_05.png", "open_06.png"], fps: 8, loop: false },
+    }),
+    modelFromDirs("button-model", "Button", "provisional", {
+      idle: { dir: "art/act01-production/scene/layered-v2/button", files: ["icon.png"], fps: 6, loop: true },
+      held: { dir: "art/act01-production/scene/layered-v2/button", files: ["held.png"], fps: 6, loop: true },
+      tossed: { dir: "art/act01-production/scene/layered-v2/button", files: ["tossed.png"], fps: 6, loop: false },
+    }),
   ];
 
   const scene = {
@@ -234,13 +248,15 @@ function buildProject() {
     background: "#21170f",
     layers,
     objects: [
-      { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 46, y: 650, w: 1470, h: 122 },
-      { id: "pip-actor", kind: "character", name: "Pip", x: 740, y: 577, w: 104, h: 150, baseline: 727, modelId: "pip-model", animationState: "idle", hotspotId: "pip-self" },
-      { id: "bramble-actor", kind: "character", name: "Bramble", x: 590, y: 385, w: 262, h: 224, baseline: 548, modelId: "bramble-model", animationState: "idle", nonInteractive: true },
-      { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 1238, y: 538, w: 112, h: 80, baseline: 613, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true },
-      { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1450, y: 574, w: 80, h: 42, baseline: 616, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true },
-      { id: "dust-prop", kind: "prop", name: "Dust Clump", x: 76, y: 650, w: 78, h: 60, baseline: 710, modelId: "dust-clump-model", animationState: "idle", hiddenInPlayable: false, nonInteractive: true },
-      { id: "grate-animation-prop", kind: "prop", name: "Opening Grate", x: 1110, y: 390, w: 330, h: 275, baseline: 630, modelId: "grate-model", animationState: "open", hiddenInPlayable: true, nonInteractive: true },
+      { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 44, y: 572, w: 1194, h: 112 },
+      { id: "pip-actor", kind: "character", name: "Pip", x: 705, y: 512, w: 130, h: 188, baseline: 700, modelId: "pip-model", animationState: "idle", hotspotId: "pip-self" },
+      { id: "bramble-actor", kind: "character", name: "Bramble", x: 500, y: 306, w: 245, h: 232, baseline: 538, modelId: "bramble-model", animationState: "idle", nonInteractive: true },
+      { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 880, y: 530, w: 138, h: 100, baseline: 630, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true },
+      { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1010, y: 530, w: 94, h: 52, baseline: 582, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true },
+      { id: "dust-prop", kind: "prop", name: "Dust Clump", x: 104, y: 604, w: 104, h: 76, baseline: 680, modelId: "dust-clump-model", animationState: "idle", hiddenInPlayable: false, nonInteractive: true },
+      { id: "dust-reveal-prop", kind: "prop", name: "Dust Reveal", x: 82, y: 576, w: 150, h: 104, baseline: 680, modelId: "dust-reveal-model", animationState: "reveal", hiddenInPlayable: true, nonInteractive: true },
+      { id: "grate-animation-prop", kind: "prop", name: "Opening Grate", x: 798, y: 418, w: 250, h: 210, baseline: 628, modelId: "grate-model", animationState: "open", hiddenInPlayable: true, nonInteractive: true },
+      { id: "button-floor-prop", kind: "prop", name: "Button", x: 133, y: 616, w: 42, h: 42, baseline: 658, modelId: "button-model", animationState: "idle", hiddenInPlayable: true, nonInteractive: true },
       ...Object.entries(hotspotDefs).map(([id, [name, x, y, w, h]]) => ({
         id: `${id}-hotspot`,
         kind: "hitbox",
@@ -252,10 +268,10 @@ function buildProject() {
         baseline: y + h,
         hotspotId: id,
       })),
-      { id: "pip-dialogue-anchor", kind: "dialogue", name: "Pip dialogue anchor", x: 715, y: 500, w: 170, h: 44, baseline: 544 },
-      { id: "bramble-dialogue-anchor", kind: "dialogue", name: "Bramble dialogue anchor", x: 590, y: 314, w: 260, h: 44, baseline: 358 },
-      { id: "old-bottlecap-dialogue-anchor", kind: "dialogue", name: "Old Bottlecap dialogue anchor", x: 1178, y: 460, w: 230, h: 44, baseline: 504 },
-      { id: "scuttle-dialogue-anchor", kind: "dialogue", name: "Scuttle dialogue anchor", x: 1390, y: 486, w: 180, h: 44, baseline: 530 },
+      { id: "pip-dialogue-anchor", kind: "dialogue", name: "Pip dialogue anchor", x: 660, y: 430, w: 260, h: 54, baseline: 484 },
+      { id: "bramble-dialogue-anchor", kind: "dialogue", name: "Bramble dialogue anchor", x: 472, y: 238, w: 300, h: 54, baseline: 292 },
+      { id: "old-bottlecap-dialogue-anchor", kind: "dialogue", name: "Old Bottlecap dialogue anchor", x: 800, y: 430, w: 300, h: 54, baseline: 484 },
+      { id: "scuttle-dialogue-anchor", kind: "dialogue", name: "Scuttle dialogue anchor", x: 958, y: 424, w: 240, h: 54, baseline: 478 },
     ],
     dialogue: [],
     flags: {},
@@ -309,7 +325,8 @@ function buildGameSpec() {
         sfx: ["found-button", "button_pickup"],
         actors: [
           { objectId: "pip-actor", state: "pickup" },
-          { objectId: "dust-prop", state: "idle" },
+          { objectId: "dust-prop", hidden: true, restore: false },
+          { objectId: "dust-reveal-prop", state: "reveal", hidden: false, restore: false },
         ],
       },
       "toll-refused": {
@@ -324,7 +341,7 @@ function buildGameSpec() {
         actors: [
           { objectId: "pip-actor", state: "handoff" },
           { objectId: "old-bottlecap-actor", state: "tollPaid" },
-          { objectId: "grate-animation-prop", state: "open", hidden: false },
+          { objectId: "grate-animation-prop", state: "open", hidden: false, restore: false },
         ],
       },
       "scuttle-cameo": {
