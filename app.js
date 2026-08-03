@@ -5,6 +5,7 @@ const pctx = previewCanvas.getContext("2d");
 const framePreview = document.getElementById("framePreview");
 const fctx = framePreview.getContext("2d");
 const ForgeCore = window.ForgeRuntimeCore;
+if (!ForgeCore) throw new Error("AdventureForge editor requires ForgeRuntimeCore.");
 
 const colors = {
   hitbox: "#ef6a75",
@@ -1749,24 +1750,7 @@ function drawBaselineOverlay(target, scene) {
 }
 
 function dialogueAnchorFor(scene, object) {
-  if (ForgeCore) return ForgeCore.dialogueAnchorFor(scene, object);
-  if (!object) return null;
-  if (object.kind === "dialogue") return object;
-  const objectWords = dialogueMatchWords(object.name);
-  return (scene.objects || []).find((candidate) => {
-    if (candidate.kind !== "dialogue") return false;
-    const candidateWords = dialogueMatchWords(candidate.name);
-    return candidateWords.some((word) => objectWords.includes(word));
-  }) || null;
-}
-
-function dialogueMatchWords(text) {
-  const ignored = new Set(["anchor", "bubble", "dialogue", "hotspot", "interaction", "text", "the"]);
-  return String(text || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .split(" ")
-    .filter((word) => word.length > 2 && !ignored.has(word));
+  return ForgeCore.dialogueAnchorFor(scene, object);
 }
 
 function makeDialogueBubble(scene, object, text) {
@@ -1785,19 +1769,8 @@ function dialogueBubbleBox(target, scene, bubble) {
   const source = anchor || object;
   if (!source) return null;
   target.font = "14px Segoe UI";
-  if (ForgeCore) {
-    const box = ForgeCore.bubbleBox(scene, source, (text) => target.measureText(text).width, bubble.text, { fontSize: 14, maxWidth: 340, maxLines: 4 });
-    return box ? { ...box, stemY: source.y } : null;
-  }
-  const maxWidth = Math.min(340, Math.max(220, scene.width - 32));
-  const lines = wrapCanvasText(target, bubble.text, maxWidth - 28);
-  const width = Math.min(maxWidth, Math.max(190, ...lines.map((line) => target.measureText(line).width + 28)));
-  const height = 34 + lines.length * 19;
-  const sourceCenter = source.x + source.w / 2;
-  const sourceTop = source.y;
-  const y = clamp(sourceTop - height - 16, 12, Math.max(12, scene.height - height - 12));
-  const x = clamp(sourceCenter - width / 2, 12, Math.max(12, scene.width - width - 12));
-  return { x, y, width, height, lines, stemX: clamp(sourceCenter, x + 22, x + width - 22), stemY: sourceTop };
+  const box = ForgeCore.bubbleBox(scene, source, (text) => target.measureText(text).width, bubble.text, { fontSize: 14, maxWidth: 340, maxLines: 4 });
+  return box ? { ...box, stemY: source.y } : null;
 }
 
 function drawDialogueBubble(target, scene, bubble) {
@@ -1831,23 +1804,6 @@ function drawDialogueBubble(target, scene, bubble) {
   target.restore();
 }
 
-function wrapCanvasText(target, text, maxWidth) {
-  const words = String(text || "").split(/\s+/).filter(Boolean);
-  const lines = [];
-  let line = "";
-  words.forEach((word) => {
-    const trial = line ? `${line} ${word}` : word;
-    if (target.measureText(trial).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = trial;
-    }
-  });
-  if (line) lines.push(line);
-  return lines.length ? lines.slice(0, 4) : [""];
-}
-
 function drawGrid(target, scene) {
   const size = project.editor?.gridSize || 16;
   target.save();
@@ -1876,12 +1832,7 @@ function drawBaseLayers(target, scene) {
 }
 
 function sortedDepthRenderables(scene) {
-  if (ForgeCore) return ForgeCore.sortedDepthRenderables(scene, { includeDialogue: true });
-  const entries = [
-    ...scene.layers.filter((layer) => layer.visible && isDepthSortedLayer(layer)).map((layer, index) => ({ kind: "layer", item: layer, index })),
-    ...scene.objects.filter((object) => object.kind !== "walkable").map((object, index) => ({ kind: "object", item: object, index: index + 1000 })),
-  ];
-  return entries.sort((a, b) => renderableBaseline(a.item, scene) - renderableBaseline(b.item, scene) || a.index - b.index);
+  return ForgeCore.sortedDepthRenderables(scene, { includeDialogue: true });
 }
 
 function collectDepthQa(scene = activeScene()) {
@@ -1992,10 +1943,7 @@ function rectsOverlap(a, b) {
 }
 
 function renderableBaseline(item, scene = activeScene()) {
-  if (ForgeCore) return ForgeCore.baseline(item, scene);
-  if (Number.isFinite(Number(item.baseline))) return Number(item.baseline);
-  if (item.kind) return Number(item.y || 0) + Number(item.h || 0);
-  return defaultLayerBaseline(item, scene);
+  return ForgeCore.baseline(item, scene);
 }
 
 function defaultLayerBaseline(layer, scene = activeScene()) {
@@ -2005,8 +1953,7 @@ function defaultLayerBaseline(layer, scene = activeScene()) {
 }
 
 function isDepthSortedLayer(layer) {
-  if (ForgeCore) return ForgeCore.isDepthSortedLayer(layer);
-  return layer.type === "foreground" || layer.type === "prop" || layer.type === "occlusion";
+  return ForgeCore.isDepthSortedLayer(layer);
 }
 
 function drawLayer(target, layer, scene = activeScene()) {
@@ -2107,14 +2054,7 @@ function drawObject(target, object, selected, scene = activeScene()) {
 }
 
 function currentRuntimeFrame(model, stateName = "idle") {
-  if (ForgeCore) return ForgeCore.currentFrame(model, stateName, performance.now());
-  if (!model?.frames?.length) return null;
-  const state = model.animations?.[stateName] || model.animations?.idle;
-  if (!state?.frames?.length) return model.frames[0];
-  const fps = Math.max(1, Number(state.fps) || 4);
-  const elapsed = performance.now() / 1000;
-  const stateIndex = state.loop === false ? Math.min(state.frames.length - 1, Math.floor(elapsed * fps)) : Math.floor(elapsed * fps) % state.frames.length;
-  return model.frames[state.frames[stateIndex]] || model.frames[0];
+  return ForgeCore.currentFrame(model, stateName, performance.now());
 }
 
 function drawResizeHandles(target, object) {
@@ -2189,12 +2129,7 @@ function snapBox(object, scene = activeScene()) {
 }
 
 function objectAt(x, y, scene = activeScene()) {
-  if (ForgeCore) return ForgeCore.objectAt(scene, x, y, { includeDialogue: true, ignoreHidden: false, ignoreNonInteractive: false });
-  return sortedDepthRenderables(scene)
-    .filter((entry) => entry.kind === "object")
-    .map((entry) => entry.item)
-    .reverse()
-    .find((object) => x >= object.x && x <= object.x + object.w && y >= object.y && y <= object.y + object.h);
+  return ForgeCore.objectAt(scene, x, y, { includeDialogue: true, ignoreHidden: false, ignoreNonInteractive: false });
 }
 
 function canvasPoint(event, canvas = stage) {
