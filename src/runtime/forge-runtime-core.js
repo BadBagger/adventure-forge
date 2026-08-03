@@ -35,14 +35,40 @@
     ].sort((a, b) => baseline(a.item, scene) - baseline(b.item, scene) || a.index - b.index);
   }
 
+  function animationDurations(animation) {
+    const frames = animation?.frames || [];
+    const fps = Math.max(1, Number(animation?.fps) || 4);
+    const holds = Array.isArray(animation?.holds) && animation.holds.length === frames.length
+      ? animation.holds
+      : frames.map(() => 1);
+    return holds.map((hold) => Math.max(0.001, Number(hold) || 1) * (1000 / fps));
+  }
+
+  function animationLengthMs(animation) {
+    return animationDurations(animation).reduce((sum, duration) => sum + duration, 0);
+  }
+
+  function animationFrameIndex(animation, elapsedMs = 0) {
+    const frames = animation?.frames || [];
+    if (!frames.length) return 0;
+    const durations = animationDurations(animation);
+    const total = durations.reduce((sum, duration) => sum + duration, 0);
+    if (!total) return 0;
+    let time = animation.loop === false
+      ? Math.min(Math.max(0, Number(elapsedMs) || 0), total - 0.001)
+      : (((Number(elapsedMs) || 0) % total) + total) % total;
+    for (let index = 0; index < durations.length; index += 1) {
+      if (time < durations[index]) return index;
+      time -= durations[index];
+    }
+    return frames.length - 1;
+  }
+
   function currentFrame(model, stateName = "idle", elapsedMs = 0) {
     if (!model?.frames?.length) return null;
     const state = model.animations?.[stateName] || model.animations?.idle;
     if (!state?.frames?.length) return model.frames[0];
-    const fps = Math.max(1, Number(state.fps) || 4);
-    const index = state.loop === false
-      ? Math.min(state.frames.length - 1, Math.floor((elapsedMs / 1000) * fps))
-      : Math.floor((elapsedMs / 1000) * fps) % state.frames.length;
+    const index = animationFrameIndex(state, elapsedMs);
     return model.frames[state.frames[index]] || model.frames[0];
   }
 
@@ -335,6 +361,9 @@
     isDepthSortedLayer,
     baseline,
     sortedDepthRenderables,
+    animationDurations,
+    animationLengthMs,
+    animationFrameIndex,
     currentFrame,
     objectAt,
     nearestWalkPoint,

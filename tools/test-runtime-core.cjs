@@ -23,7 +23,11 @@ const scene = {
 const model = {
   id: "hero-model",
   frames: [{ id: "f0" }, { id: "f1" }, { id: "f2" }],
-  animations: { stamp: { frames: [1, 2], fps: 2, loop: true }, idle: { frames: [0], fps: 1, loop: true } },
+  animations: {
+    stamp: { frames: [1, 2], fps: 2, loop: true },
+    inspect: { frames: [0, 1, 2], fps: 4, loop: false, holds: [1, 3, 1] },
+    idle: { frames: [0], fps: 1, loop: true },
+  },
 };
 
 const project = {
@@ -73,6 +77,12 @@ function main() {
   assert.strictEqual(core.dialogueAnchorFor(scene, scene.objects[1]).id, "anchor");
   assert.strictEqual(core.currentFrame(model, "stamp", 0).id, "f1");
   assert.strictEqual(core.currentFrame(model, "stamp", 500).id, "f2");
+  assert.deepStrictEqual(
+    [0, 250, 500, 900, 1000, 2000].map((elapsedMs) => core.currentFrame(model, "inspect", elapsedMs).id),
+    ["f0", "f1", "f1", "f1", "f2", "f2"],
+    "held animation beats should resolve through the shared runtime core",
+  );
+  assert.strictEqual(core.animationLengthMs(model.animations.inspect), 1250);
 
   const walkPoint = core.nearestWalkPoint(scene, 500, 500);
   assert.strictEqual(walkPoint.x, 280);

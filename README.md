@@ -133,6 +133,8 @@ Use `Playable` in the Project panel to export a single `.playable.html` file. It
 
 The standalone playable and CLI builder both use `src/runtime/forge-runtime-core.js` plus `src/runtime/forge-canvas-runtime.js`. The editor preview also routes high-risk interpretation rules through the same core so baseline order, hit testing, animation frames, walk clamping, and dialogue anchor selection do not drift between editor and game.
 
+See `CONFORMANCE.md` for the runtime anti-drift contract and the test coverage that protects it.
+
 Use `Target` and `Debug` in the Project panel to describe the intended runtime export. `Package` writes a `.package.json` manifest with scene geometry, depth order, dialogue branches, character frame metadata, QA issues, and adapter notes for either standalone HTML or a Phaser scaffold.
 
 Rules may end the story with `after: { "endGame": true, "lineIds": [...], "status": "The End" }`. The canvas runtime plays the final line sequence, sets the game state to ended, disables further scene clicks, and leaves the final status visible.
