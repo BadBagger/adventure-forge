@@ -8,13 +8,14 @@ Current imported source:
 - `docs/ACT_01_DESIGN.md` - Act 1 hotspots, inventory item, flags, Bramble topics, and toll-gate puzzle rules.
 - `art/concept-sheets/act01-idle-72/` - 72-frame idle concept sheets for Act 1 characters.
 - `art/concept-sheets/act01-interactions/` - pickup/handoff interaction concept sheets.
+- Acts 2 and 3 are authored directly in the Forge fixture as placeholder-art continuation content.
 
 AdventureForge project outputs:
 
-- `adventureforge-playable-fixture.json` - authored project data, imported assets, scene layer markers, hitboxes, dialogue, inventory/flag rules, and Act 1 game metadata.
+- `adventureforge-playable-fixture.json` - authored project data, imported assets, scene layer markers, hitboxes, dialogue, inventory/flag rules, and complete placeholder-story game metadata.
 - `adventureforge-pilot.playable.html` - standalone playable export built from the fixture.
 - `assets/lost-underfound/` - sliced transparent runtime frame assets and scene plate.
 
 Scope boundary:
 
-Act 1 is playable. Acts 2 and 3 are intentionally blocked with an in-project placeholder scene until their script/design passes exist in the Lost & Underfound source repo.
+The current AdventureForge build is complete as a placeholder-art playable story. The Lost & Underfound source repo should still become the canonical home for any later final script, production art, audio, and localization passes.

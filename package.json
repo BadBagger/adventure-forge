@@ -5,15 +5,18 @@
   "description": "AdventureForge adventure-game authoring prototype.",
   "scripts": {
     "preview:runtime": "python -m http.server 4177",
-    "check": "node --check app.js && node --check src/runtime/forge-runtime-core.js && node --check src/runtime/forge-canvas-runtime.js && node --check tools/build-playable.cjs && node --check tools/split-spritesheet.cjs && node --check tools/import-asset-folder.cjs && node --check tools/export-package.cjs && node --check tools/test-pipeline.cjs && node --check tools/test-runtime-core.cjs && node --check tools/test-browser-runtime.cjs",
+    "check": "node --check app.js && node --check src/runtime/forge-runtime-core.js && node --check src/runtime/forge-canvas-runtime.js && node --check tools/build-playable.cjs && node --check tools/split-spritesheet.cjs && node --check tools/import-asset-folder.cjs && node --check tools/export-package.cjs && node --check tools/lost-underfound-cast-library.cjs && node --check tools/test-pipeline.cjs && node --check tools/test-runtime-core.cjs && node --check tools/test-browser-runtime.cjs",
     "build:playable": "node tools/build-playable.cjs adventureforge-playable-fixture.json adventureforge-pilot.playable.html",
     "split:spritesheet": "node tools/split-spritesheet.cjs",
     "import:assets": "node tools/import-asset-folder.cjs",
+    "cast:init": "node tools/lost-underfound-cast-library.cjs init",
+    "cast:import": "node tools/lost-underfound-cast-library.cjs import",
+    "cast:validate": "node tools/lost-underfound-cast-library.cjs validate",
     "export:package": "node tools/export-package.cjs",
     "test:pipeline": "node tools/test-pipeline.cjs",
     "test:runtime": "node tools/test-runtime-core.cjs",
     "test:browser": "node tools/test-browser-runtime.cjs",
-    "test": "npm run check && npm run build:playable && npm run test:pipeline && npm run test:runtime && npm run test:browser"
+    "test": "npm run check && npm run cast:validate && npm run build:playable && npm run test:pipeline && npm run test:runtime && npm run test:browser"
   },
   "devDependencies": {
     "playwright": "^1.62.1",

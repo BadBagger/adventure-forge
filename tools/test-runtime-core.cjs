@@ -31,7 +31,15 @@ const project = {
   activeSceneId: "scene-1",
   scenes: [scene],
   assets: { characters: [model] },
-  game: { initialInventory: ["stamp"], initialFlags: { intro: true } },
+  game: {
+    buildStatus: "forge-complete-placeholder",
+    initialInventory: ["stamp"],
+    initialFlags: { intro: true },
+    hotspots: {
+      desk: { useItem: { stamp: [{ lineIds: ["ok"], after: { endGame: true } }] } },
+    },
+  },
+  script: { lines: [{ line_id: "ok", speaker: "Hero", text: "Done." }] },
 };
 
 function main() {
@@ -82,6 +90,17 @@ function main() {
 
   const rule = core.pickInteractionRule(state, [{ requiresFlag: "missing", id: "bad" }, { requiresFlag: "gateOpen", id: "good" }], "desk");
   assert.strictEqual(rule.id, "good");
+
+  assert.deepStrictEqual(core.collectGameCompletionIssues(project), [], "complete placeholder projects should pass completion QA");
+  const blockedProject = JSON.parse(JSON.stringify(project));
+  blockedProject.scenes.push({ id: "blocked", name: "Act 2 - Script Pass Required", width: 320, height: 180, layers: [], objects: [] });
+  blockedProject.game.buildStatus = "Act 1 playable only";
+  delete blockedProject.game.hotspots.desk.useItem.stamp[0].after;
+  const completionMessages = core.collectGameCompletionIssues(blockedProject).map((issue) => issue.message);
+  assert.ok(completionMessages.some((message) => message.includes("build status")), "completion QA should require the placeholder-complete build marker");
+  assert.ok(completionMessages.some((message) => message.includes("blocker text")), "completion QA should reject placeholder blocker text");
+  assert.ok(completionMessages.some((message) => message.includes("not reachable")), "completion QA should reject unreachable story scenes");
+  assert.ok(completionMessages.some((message) => message.includes("after.endGame")), "completion QA should require an authored ending");
 
   const html = buildPlayableHtml(project);
   assert.ok(html.includes("ForgeRuntimeCore"), "playable export should embed Forge runtime core marker");

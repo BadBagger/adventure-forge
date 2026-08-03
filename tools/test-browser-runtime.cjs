@@ -44,6 +44,26 @@ async function clickCanvasAt(page, selector, x, y) {
   await page.mouse.click(box.x + (x / size.width) * box.width, box.y + (y / size.height) * box.height);
 }
 
+async function drainChoices(page, selector = "#choices") {
+  for (let index = 0; index < 20; index += 1) {
+    const button = page.locator(`${selector} button`).first();
+    if (await button.count() === 0) return;
+    await button.click();
+    await page.waitForTimeout(60);
+  }
+  throw new Error(`Choice list ${selector} did not drain`);
+}
+
+async function selectInventory(page, label) {
+  const button = page.locator("#inventory button", { hasText: label });
+  if (await button.evaluate((node) => node.classList.contains("active"))) return;
+  await button.click();
+}
+
+async function waitForInventory(page, label) {
+  await page.locator("#inventory button", { hasText: label }).waitFor({ timeout: 8000 });
+}
+
 async function runEditorPreviewTest(page) {
   await page.goto(`${BASE_URL}/index.html`, { waitUntil: "networkidle" });
   const globals = await page.evaluate(() => ({
@@ -100,6 +120,7 @@ async function runStandalonePlayableTest(page) {
     const hit = window.ForgeRuntimeCore.objectAt(scene, 360, 280, { ignoreHidden: false, ignoreNonInteractive: false });
     return {
       brambleAnchor: window.ForgeRuntimeCore.dialogueAnchorFor(scene, bramble)?.id,
+      completionIssues: window.ForgeRuntimeCore.collectGameCompletionIssues(window.__FORGE_PROJECT__).map((issue) => issue.message),
       deskBeforeBramble: order.indexOf(desk.id) < order.indexOf(bramble.id),
       pipBeforeDeskAfterCrossing: crossedOrder.indexOf(pip.id) < crossedOrder.indexOf(desk.id),
       occlusionWarnings,
@@ -108,6 +129,7 @@ async function runStandalonePlayableTest(page) {
     };
   });
   assert.strictEqual(conformance.brambleAnchor, "bramble-dialogue-anchor");
+  assert.deepStrictEqual(conformance.completionIssues, [], "shipped fixture should pass game-completion QA");
   assert.strictEqual(conformance.deskBeforeBramble, false, "Bramble should draw before the higher-baseline desk hotspot");
   assert.strictEqual(conformance.pipBeforeDeskAfterCrossing, true, "actor depth should flip when its baseline crosses a hotspot baseline");
   assert.ok(conformance.occlusionWarnings.includes("pip-actor:logical-desk-front-occluder"), "exported runtime core should flag missing occlusion coverage");
@@ -117,6 +139,50 @@ async function runStandalonePlayableTest(page) {
   await clickCanvasAt(page, "#game", 360, 280);
   await page.waitForFunction(() => /Walking to Bramble's Desk|Bramble/i.test(document.querySelector("#status")?.textContent || document.querySelector("#speaker")?.textContent || ""), null, { timeout: 5000 });
   await page.waitForFunction(() => /Bramble|Scene Log/i.test(document.querySelector("#speaker")?.textContent || ""), null, { timeout: 5000 });
+
+  await drainChoices(page);
+  await page.click("#useMode");
+  await clickCanvasAt(page, "#game", 55, 440);
+  await waitForInventory(page, "Button");
+  await drainChoices(page);
+
+  await selectInventory(page, "Button");
+  await clickCanvasAt(page, "#game", 800, 300);
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.gateOpen === true, null, { timeout: 10000 });
+  await drainChoices(page);
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.state.scene.id === "lint-switchyard", null, { timeout: 10000 });
+
+  await page.click("#useMode");
+  await clickCanvasAt(page, "#game", 213, 350);
+  await waitForInventory(page, "Paperclip Hook");
+  await drainChoices(page);
+  await clickCanvasAt(page, "#game", 498, 330);
+  await waitForInventory(page, "Thread Loop");
+  await drainChoices(page);
+
+  await selectInventory(page, "Paperclip Hook");
+  await clickCanvasAt(page, "#game", 790, 320);
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.turnstileOpen === true, null, { timeout: 10000 });
+  await drainChoices(page);
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.state.scene.id === "spring-nest-finale", null, { timeout: 10000 });
+
+  await selectInventory(page, "Paperclip Hook");
+  await clickCanvasAt(page, "#game", 700, 320);
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.hookPlaced === true, null, { timeout: 10000 });
+  await drainChoices(page);
+
+  await selectInventory(page, "Thread Loop");
+  await clickCanvasAt(page, "#game", 700, 320);
+  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.marbleRecovered === true, null, { timeout: 10000 });
+  await drainChoices(page);
+  await page.waitForFunction(() => /The End/i.test(document.querySelector("#status")?.textContent || ""), null, { timeout: 10000 });
+  const endState = await page.evaluate(() => ({
+    ended: window.__FORGE_RUNTIME__.state.ended,
+    gameEnded: window.__FORGE_RUNTIME__.gameState.ended,
+    marbleRecovered: window.__FORGE_RUNTIME__.gameState.flags.marbleRecovered,
+    hasMarble: window.__FORGE_RUNTIME__.gameState.inventory.includes("marble"),
+  }));
+  assert.deepStrictEqual(endState, { ended: true, gameEnded: true, marbleRecovered: true, hasMarble: true });
 }
 
 async function main() {

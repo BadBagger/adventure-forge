@@ -2,6 +2,8 @@
 
 AdventureForge is a Codex-first adventure-game authoring studio. Codex can propose structured JSON changes, while a human can manually fix hitboxes, dialogue anchors, character state notes, scene layers, and walkable areas.
 
+The checked-in Lost & Underfound fixture is now a complete placeholder-art story build: Act 1 under the couch, Act 2 through the Lint Switchyard, and Act 3 in the Spring Nest Finale. It is intended as a full playable Forge build, not final commercial art.
+
 Open `index.html` in a browser to run it, or serve this folder with a static server:
 
 ```powershell
@@ -58,6 +60,8 @@ Then open `http://127.0.0.1:4177/index.html`.
 - Export target settings and package manifest export for standalone HTML or Phaser scaffold handoff.
 - CLI asset pipeline for splitting sprite sheets, importing asset folders, and exporting external-asset package manifests.
 - Playable preview for clicking authored interactions.
+- Complete-game QA checks for placeholder blocker text, scene reachability, obtainable required items, and at least one authored ending.
+- Browser conformance coverage for the complete Lost & Underfound critical path through the ending.
 - MVP validation checks.
 
 ## Script sync format
@@ -130,6 +134,8 @@ Use `Playable` in the Project panel to export a single `.playable.html` file. It
 The standalone playable and CLI builder both use `src/runtime/forge-runtime-core.js` plus `src/runtime/forge-canvas-runtime.js`. The editor preview also routes high-risk interpretation rules through the same core so baseline order, hit testing, animation frames, walk clamping, and dialogue anchor selection do not drift between editor and game.
 
 Use `Target` and `Debug` in the Project panel to describe the intended runtime export. `Package` writes a `.package.json` manifest with scene geometry, depth order, dialogue branches, character frame metadata, QA issues, and adapter notes for either standalone HTML or a Phaser scaffold.
+
+Rules may end the story with `after: { "endGame": true, "lineIds": [...], "status": "The End" }`. The canvas runtime plays the final line sequence, sets the game state to ended, disables further scene clicks, and leaves the final status visible.
 
 The checked-in fixture can also be rebuilt from the command line:
 
@@ -211,4 +217,5 @@ Paste one object or an array of patch objects into `Codex Patch`, then use `Prev
 
 ## Next build targets
 
+- Replace placeholder/concept art with final production art and audio.
 - Optional engine-specific runtime bundles beyond the current package manifest scaffold.

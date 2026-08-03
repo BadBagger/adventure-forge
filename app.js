@@ -3125,6 +3125,7 @@ function collectQaIssues() {
     });
     issues.push(...collectOcclusionQa(scene));
   });
+  issues.push(...ForgeCore.collectGameCompletionIssues(project));
   project.assets.characters.forEach((model) => issues.push(...modelQaIssueRecords(model)));
   return issues;
 }

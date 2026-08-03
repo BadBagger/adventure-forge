@@ -1,0 +1,529 @@
+{
+  "version": 1,
+  "project": "lost-underfound",
+  "policy": {
+    "promptComposition": "structureTemplateWithNInjection + identityBlock + poseLine",
+    "scaleIsRuntimeData": true,
+    "actorOnlyForAnchoredCharacters": true,
+    "backgroundKey": "#808080"
+  },
+  "canonicalStates": [
+    "idle",
+    "walk",
+    "turnaround",
+    "talk",
+    "inspect",
+    "pickup",
+    "handoff",
+    "tollRefused",
+    "tollPaid",
+    "dash",
+    "reveal",
+    "open"
+  ],
+  "characters": {
+    "pip": {
+      "id": "pip",
+      "displayName": "Pip",
+      "modelId": "pip-model",
+      "scale": 1,
+      "deferred": false,
+      "deferredReason": "",
+      "structureTemplate": "Single horizontal strip, [N] poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]",
+      "anchorLine": "PIP -- full body, feet on a consistent ground line.",
+      "identityBlock": "**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]",
+      "occluder": null,
+      "states": {
+        "idle": {
+          "state": "idle",
+          "n": 6,
+          "fps": 8,
+          "loop": true,
+          "view": "3/4",
+          "poseLine": "living idle: 1 neutral, 2 chest breath, 3 blink, 4 small anxious weight shift, 5 glance around, 6 settle. Alive, not statue-still.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/idle.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/idle",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\nliving idle: 1 neutral, 2 chest breath, 3 blink, 4 small anxious weight shift, 5 glance around, 6 settle. Alive, not statue-still."
+        },
+        "walk": {
+          "state": "walk",
+          "n": 9,
+          "fps": 12,
+          "loop": true,
+          "view": "side, moving right",
+          "poseLine": "conform to the repo's 9-key-pose walk contract: 1 left contact, 2 left recoil/down, 3 left passing, 4 left high point, 5 right contact, 6 right recoil/down, 7 right passing, 8 right high point, 9 loop-safe return. Feet stay on one ground line.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/walk.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/walk",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 9 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\nconform to the repo's 9-key-pose walk contract: 1 left contact, 2 left recoil/down, 3 left passing, 4 left high point, 5 right contact, 6 right recoil/down, 7 right passing, 8 right high point, 9 loop-safe return. Feet stay on one ground line."
+        },
+        "turnaround": {
+          "state": "turnaround",
+          "n": 6,
+          "fps": 10,
+          "loop": false,
+          "view": "profile to front to profile",
+          "poseLine": "head/eyes lead, body follows -- no mirror snap. 1 facing left, 2 eyes cut right, 3 head turns, 4 shoulders follow to 3/4, 5 through front, 6 settle facing right.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/turnaround.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/turnaround",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\nhead/eyes lead, body follows -- no mirror snap. 1 facing left, 2 eyes cut right, 3 head turns, 4 shoulders follow to 3/4, 5 through front, 6 settle facing right."
+        },
+        "talk": {
+          "state": "talk",
+          "n": 5,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4",
+          "poseLine": "1 neutral, 2 lean toward object, 3 head tilt curious, 4 small nervous gesture, 5 react. Do not draw object.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/talk.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/talk",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 5 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\n1 neutral, 2 lean toward object, 3 head tilt curious, 4 small nervous gesture, 5 react. Do not draw object."
+        },
+        "inspect": {
+          "state": "inspect",
+          "n": 5,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4",
+          "poseLine": "1 neutral, 2 lean toward object, 3 head tilt curious, 4 small nervous gesture, 5 react. Do not draw object.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/inspect.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/inspect",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 5 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\n1 neutral, 2 lean toward object, 3 head tilt curious, 4 small nervous gesture, 5 react. Do not draw object."
+        },
+        "pickup": {
+          "state": "pickup",
+          "n": 8,
+          "fps": 12,
+          "loop": false,
+          "view": "3/4",
+          "poseLine": "1 neutral, 2 crouch begins, 3 reaches into dust clump, 4 hand buried, 5 anticipation hold, 6 grasp, 7 rising with hand posed to hold, 8 upright presenting the button at chest. Object drawn only from pose 8.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/pickup.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/pickup",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 8 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\n1 neutral, 2 crouch begins, 3 reaches into dust clump, 4 hand buried, 5 anticipation hold, 6 grasp, 7 rising with hand posed to hold, 8 upright presenting the button at chest. Object drawn only from pose 8."
+        },
+        "hold": {
+          "state": "hold",
+          "n": 4,
+          "fps": 8,
+          "loop": true,
+          "view": "3/4",
+          "poseLine": "held-item idle: 1-4 subtle, item held at chest, small breathing.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/hold.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/hold",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\nheld-item idle: 1-4 subtle, item held at chest, small breathing."
+        },
+        "handoff": {
+          "state": "handoff",
+          "n": 6,
+          "fps": 12,
+          "loop": false,
+          "view": "3/4",
+          "poseLine": "toss/hand button to Bottlecap: 1 holding, 2 windup, 3 extend/throw, 4 release, 5 follow-through, 6 hand returns empty.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/handoff.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/handoff",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\ntoss/hand button to Bottlecap: 1 holding, 2 windup, 3 extend/throw, 4 release, 5 follow-through, 6 hand returns empty."
+        },
+        "relief": {
+          "state": "relief",
+          "n": 5,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4",
+          "poseLine": "after toll accepted: 1 tense, 2 realization, 3 exhale, 4 excited little bounce, 5 settle grinning.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/relief.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/relief",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 5 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\nafter toll accepted: 1 tense, 2 realization, 3 exhale, 4 excited little bounce, 5 settle grinning."
+        },
+        "transitionOut": {
+          "state": "transitionOut",
+          "n": 4,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4",
+          "poseLine": "exit reaction for line act01-049: 1 look toward the grate, 2 nod, 3 step toward, 4 pre-exit anticipation.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/pip/transitionOut.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/pip/transitionOut",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**PIP** -- a shrunk kid searching under the couch for a lost lucky marble. Resourceful, stubborn, nervous energy -- brave because there's no better option. Practical kid clothes. [View per state.]\n\nexit reaction for line act01-049: 1 look toward the grate, 2 nod, 3 step toward, 4 pre-exit anticipation."
+        }
+      }
+    },
+    "bramble": {
+      "id": "bramble",
+      "displayName": "Bramble",
+      "modelId": "bramble-model",
+      "scale": 0.85,
+      "deferred": false,
+      "deferredReason": "",
+      "structureTemplate": "Single horizontal strip, [N] poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]",
+      "anchorLine": "BRAMBLE -- actor only, framed as if seated/set behind their station, no furniture or gate drawn, anchor point identical each pose.",
+      "identityBlock": "**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.",
+      "occluder": "desk-front",
+      "states": {
+        "idle": {
+          "state": "idle",
+          "n": 6,
+          "fps": 10,
+          "loop": true,
+          "view": "3/4 desk-anchored",
+          "poseLine": "fussy filing: 1 shuffling bottle-cap folders, 2 filing one, 3 checking a paper, 4 stamping lightly, 5 squaring the stack, 6 back to shuffling. Hands at desk height throughout.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/idle.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/idle",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\nfussy filing: 1 shuffling bottle-cap folders, 2 filing one, 3 checking a paper, 4 stamping lightly, 5 squaring the stack, 6 back to shuffling. Hands at desk height throughout."
+        },
+        "talk": {
+          "state": "talk",
+          "n": 5,
+          "fps": 10,
+          "loop": true,
+          "view": "3/4 desk-anchored",
+          "poseLine": "interrupts the work naturally: 1 mid-file, 2 looks up, 3 gestures while explaining, 4 glances back at papers, 5 resumes work.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/talk.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/talk",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 5 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\ninterrupts the work naturally: 1 mid-file, 2 looks up, 3 gestures while explaining, 4 glances back at papers, 5 resumes work."
+        },
+        "greeting": {
+          "state": "greeting",
+          "n": 5,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4 desk-anchored",
+          "poseLine": "Pip first approaches: 1 heads-down working, 2 notices, 3 straightens with importance, 4 officious little welcome gesture, 5 settles into clerk posture.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/greeting.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/greeting",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 5 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\nPip first approaches: 1 heads-down working, 2 notices, 3 straightens with importance, 4 officious little welcome gesture, 5 settles into clerk posture."
+        },
+        "questGiver": {
+          "state": "questGiver",
+          "n": 6,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4 desk-anchored",
+          "poseLine": "tutorial gesture set: 1 points (inspect), 2 mimes use, 3 mimes combining two items, 4 points off toward the gate, 5 emphatic nod, 6 hands-clasp settle.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/questGiver.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/questGiver",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\ntutorial gesture set: 1 points (inspect), 2 mimes use, 3 mimes combining two items, 4 points off toward the gate, 5 emphatic nod, 6 hands-clasp settle."
+        },
+        "responseSelf": {
+          "state": "responseSelf",
+          "n": 4,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4 desk-anchored",
+          "poseLine": "about self: 1 proud puff, 2 explanatory gesture, 3 beat, 4 return to work.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/responseSelf.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/responseSelf",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\nabout self: 1 proud puff, 2 explanatory gesture, 3 beat, 4 return to work."
+        },
+        "responseBottlecap": {
+          "state": "responseBottlecap",
+          "n": 4,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4 desk-anchored",
+          "poseLine": "about Old Bottlecap: 1 wary glance toward gate, 2 explanatory gesture, 3 beat, 4 return to work.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/responseBottlecap.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/responseBottlecap",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\nabout Old Bottlecap: 1 wary glance toward gate, 2 explanatory gesture, 3 beat, 4 return to work."
+        },
+        "wrongAction": {
+          "state": "wrongAction",
+          "n": 4,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4 desk-anchored",
+          "poseLine": "1 sees the mistake, 2 fussy disapproval, 3 corrective wag, 4 settle.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/wrongAction.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/wrongAction",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\n1 sees the mistake, 2 fussy disapproval, 3 corrective wag, 4 settle."
+        },
+        "postGate": {
+          "state": "postGate",
+          "n": 4,
+          "fps": 10,
+          "loop": false,
+          "view": "3/4 desk-anchored",
+          "poseLine": "mildly disappointed Pip got through so fast: 1 looks up, 2 mild deflation, 3 small huff, 4 back to filing.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/bramble/postGate.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/bramble/postGate",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**BRAMBLE** -- a dust bunny who appointed itself Lost & Found Clerk. Fussy, procedure-proud, treats nonsense bureaucracy as sacred law. Small round dust-fluff body, expressive. **Actor only -- no desk drawn.** 3/4 view, framed as if seated behind a counter, hands posed at desk-surface height.\n\nmildly disappointed Pip got through so fast: 1 looks up, 2 mild deflation, 3 small huff, 4 back to filing."
+        }
+      }
+    },
+    "oldBottlecap": {
+      "id": "oldBottlecap",
+      "displayName": "Old Bottlecap",
+      "modelId": "old-bottlecap-model",
+      "scale": 0.6,
+      "deferred": false,
+      "deferredReason": "",
+      "structureTemplate": "Single horizontal strip, [N] poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]",
+      "anchorLine": "OLD BOTTLECAP -- actor only, framed as if seated/set behind their station, no furniture or gate drawn, anchor point identical each pose.",
+      "identityBlock": "**OLD BOTTLECAP** -- an ancient sentient stack of bottle caps guarding the grate. Grumpy, deadpan, unimpressed by default. Comedy is heavy stillness and tiny judgmental movements, never frantic. Visually weighty despite small scale. **Actor only -- no gate bars drawn.** 3/4 view, fixed anchor.",
+      "occluder": "gate-front",
+      "states": {
+        "idle": {
+          "state": "idle",
+          "n": 5,
+          "fps": 6,
+          "loop": true,
+          "view": "3/4 gate-anchored",
+          "poseLine": "slow heavy loop: 1 settled, 2 slow rock to one side, 3 blink, 4 tiny eye shift, 5 small disapproving head tilt. Heavy, minimal -- weight over motion.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/oldBottlecap/idle.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/oldBottlecap/idle",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 5 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**OLD BOTTLECAP** -- an ancient sentient stack of bottle caps guarding the grate. Grumpy, deadpan, unimpressed by default. Comedy is heavy stillness and tiny judgmental movements, never frantic. Visually weighty despite small scale. **Actor only -- no gate bars drawn.** 3/4 view, fixed anchor.\n\nslow heavy loop: 1 settled, 2 slow rock to one side, 3 blink, 4 tiny eye shift, 5 small disapproving head tilt. Heavy, minimal -- weight over motion."
+        },
+        "tollRefused": {
+          "state": "tollRefused",
+          "n": 4,
+          "fps": 8,
+          "loop": false,
+          "view": "3/4 gate-anchored",
+          "poseLine": "1 idle, 2 short dismissive head shake, 3 turns slightly away, 4 back to idle.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/oldBottlecap/tollRefused.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/oldBottlecap/tollRefused",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**OLD BOTTLECAP** -- an ancient sentient stack of bottle caps guarding the grate. Grumpy, deadpan, unimpressed by default. Comedy is heavy stillness and tiny judgmental movements, never frantic. Visually weighty despite small scale. **Actor only -- no gate bars drawn.** 3/4 view, fixed anchor.\n\n1 idle, 2 short dismissive head shake, 3 turns slightly away, 4 back to idle."
+        },
+        "tollPaid": {
+          "state": "tollPaid",
+          "n": 8,
+          "fps": 8,
+          "loop": false,
+          "view": "3/4 gate-anchored",
+          "poseLine": "the big performance, held timing: 1 notices the button, 2 slow lean toward it, 3 reach on a deliberate arc, 4 takes it, 5 inspects -- held beat, 6 slow consideration, 7 grudging approval nod, 8 settles back into gate-guard pose.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/oldBottlecap/tollPaid.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/oldBottlecap/tollPaid",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 8 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**OLD BOTTLECAP** -- an ancient sentient stack of bottle caps guarding the grate. Grumpy, deadpan, unimpressed by default. Comedy is heavy stillness and tiny judgmental movements, never frantic. Visually weighty despite small scale. **Actor only -- no gate bars drawn.** 3/4 view, fixed anchor.\n\nthe big performance, held timing: 1 notices the button, 2 slow lean toward it, 3 reach on a deliberate arc, 4 takes it, 5 inspects -- held beat, 6 slow consideration, 7 grudging approval nod, 8 settles back into gate-guard pose."
+        },
+        "talk": {
+          "state": "talk",
+          "n": 4,
+          "fps": 8,
+          "loop": true,
+          "view": "3/4 gate-anchored",
+          "poseLine": "lines 038-042: 1 neutral, 2 slow jaw/mouth open, 3 tiny head emphasis, 4 close. Deadpan, small.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/oldBottlecap/talk.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/oldBottlecap/talk",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**OLD BOTTLECAP** -- an ancient sentient stack of bottle caps guarding the grate. Grumpy, deadpan, unimpressed by default. Comedy is heavy stillness and tiny judgmental movements, never frantic. Visually weighty despite small scale. **Actor only -- no gate bars drawn.** 3/4 view, fixed anchor.\n\nlines 038-042: 1 neutral, 2 slow jaw/mouth open, 3 tiny head emphasis, 4 close. Deadpan, small."
+        }
+      }
+    },
+    "scuttle": {
+      "id": "scuttle",
+      "displayName": "Scuttle",
+      "modelId": "scuttle-model",
+      "scale": 0.35,
+      "deferred": false,
+      "deferredReason": "",
+      "structureTemplate": "Single horizontal strip, [N] poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]",
+      "anchorLine": "SCUTTLE -- full body, tiny, consistent ground line.",
+      "identityBlock": "**SCUTTLE** -- a roly-poly courier bug, twitchy and self-important, always mid-delivery. A tiny official emergency with legs. Deliberately small. Side view for the dash.",
+      "occluder": null,
+      "states": {
+        "dash": {
+          "state": "dash",
+          "n": 6,
+          "fps": 16,
+          "loop": false,
+          "view": "side",
+          "poseLine": "one-shot burst through the cobweb on inspect: 1 solid ready pose, 2 launch, 3 smear frame elongated in travel direction, 4 smear frame, 5 solid landing pose, 6 skitters off. Keep 1 and 5 crisp so the smears read.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/scuttle/dash.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/scuttle/dash",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**SCUTTLE** -- a roly-poly courier bug, twitchy and self-important, always mid-delivery. A tiny official emergency with legs. Deliberately small. Side view for the dash.\n\none-shot burst through the cobweb on inspect: 1 solid ready pose, 2 launch, 3 smear frame elongated in travel direction, 4 smear frame, 5 solid landing pose, 6 skitters off. Keep 1 and 5 crisp so the smears read."
+        },
+        "talk": {
+          "state": "talk",
+          "n": 4,
+          "fps": 10,
+          "loop": false,
+          "view": "side",
+          "poseLine": "line act01-015: 1 stops, 2 self-important puff, 3 quick bark with body jerk, 4 already leaving.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/characters/scuttle/talk.png",
+          "frameDir": "assets/lost-underfound/animation-library/characters/scuttle/talk",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]\n\n**SCUTTLE** -- a roly-poly courier bug, twitchy and self-important, always mid-delivery. A tiny official emergency with legs. Deliberately small. Side view for the dash.\n\nline act01-015: 1 stops, 2 self-important puff, 3 quick bark with body jerk, 4 already leaving."
+        }
+      }
+    },
+    "grommet": {
+      "id": "grommet",
+      "displayName": "Grommet",
+      "modelId": "grommet-model",
+      "scale": 2.4,
+      "deferred": true,
+      "deferredReason": "Acts 2-3 lack script/design detail. Placeholder + scale-anchor only.",
+      "structureTemplate": "Single horizontal strip, [N] poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. [anchor line]",
+      "anchorLine": "GROMMET -- placeholder only, full body, consistent ground line.",
+      "identityBlock": "**GROMMET** -- a sock-puppet husk with gentle-guardian energy. Do not finalize until Acts 2-3 have script/design detail.",
+      "occluder": null,
+      "states": {}
+    }
+  },
+  "props": {
+    "dustClump": {
+      "id": "dustClump",
+      "displayName": "Dust Clump",
+      "clips": {
+        "idle": {
+          "state": "idle",
+          "n": 4,
+          "fps": 6,
+          "loop": true,
+          "poseLine": "settled clump, tiny drift/breathing loop.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/props/dustClump/idle.png",
+          "frameDir": "assets/lost-underfound/animation-library/props/dustClump/idle",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. PROP -- object only, centered consistently in every pose.\n\nDUST CLUMP prop animation for Lost & Underfound. Object only on flat grey background, no character, no room, no text.\n\nsettled clump, tiny drift/breathing loop."
+        },
+        "reveal": {
+          "state": "reveal",
+          "n": 7,
+          "fps": 12,
+          "loop": false,
+          "poseLine": "search to puff to squash/stretch dispersal, button revealed only after Pip's reach anticipation, poses 5-7.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/props/dustClump/reveal.png",
+          "frameDir": "assets/lost-underfound/animation-library/props/dustClump/reveal",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 7 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. PROP -- object only, centered consistently in every pose.\n\nDUST CLUMP prop animation for Lost & Underfound. Object only on flat grey background, no character, no room, no text.\n\nsearch to puff to squash/stretch dispersal, button revealed only after Pip's reach anticipation, poses 5-7."
+        }
+      }
+    },
+    "button": {
+      "id": "button",
+      "displayName": "Button",
+      "clips": {
+        "reveal": {
+          "state": "reveal",
+          "n": 3,
+          "fps": 8,
+          "loop": false,
+          "poseLine": "glint and settle as it is uncovered.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/props/button/reveal.png",
+          "frameDir": "assets/lost-underfound/animation-library/props/button/reveal",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 3 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. PROP -- object only, centered consistently in every pose.\n\nBUTTON prop animation for Lost & Underfound. Object only on flat grey background, no character, no room, no text.\n\nglint and settle as it is uncovered."
+        }
+      }
+    },
+    "grate": {
+      "id": "grate",
+      "displayName": "The Grate",
+      "clips": {
+        "open": {
+          "state": "open",
+          "n": 6,
+          "fps": 8,
+          "loop": false,
+          "poseLine": "toll-paid mechanical open: 1 closed, 2 clunk/anticipation, 3 begins sliding/lifting with weight, 4 mid, 5 near-open overshoot, 6 settle.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/props/grate/open.png",
+          "frameDir": "assets/lost-underfound/animation-library/props/grate/open",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 6 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. PROP -- object only, centered consistently in every pose.\n\nTHE GRATE prop animation for Lost & Underfound. Object only on flat grey background, no character, no room, no text.\n\ntoll-paid mechanical open: 1 closed, 2 clunk/anticipation, 3 begins sliding/lifting with weight, 4 mid, 5 near-open overshoot, 6 settle."
+        }
+      }
+    },
+    "cobwebCurtain": {
+      "id": "cobwebCurtain",
+      "displayName": "Cobweb Curtain",
+      "clips": {
+        "disturbance": {
+          "state": "disturbance",
+          "n": 4,
+          "fps": 12,
+          "loop": false,
+          "poseLine": "mostly static hotspot; 4-frame ripple triggered by Scuttle's dash.",
+          "sourceStrip": "imports/lost-underfound/generated-strips/props/cobwebCurtain/disturbance.png",
+          "frameDir": "assets/lost-underfound/animation-library/props/cobwebCurtain/disturbance",
+          "sliceMode": "horizontal-even",
+          "backgroundKey": "#808080",
+          "qaStatus": "needs-generation",
+          "resolvedPrompt": "Single horizontal strip, 4 poses left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no cast shadows on the background. Same character, same design, same scale, same camera distance and eye level in every pose, even margins. Consistent flat lighting. PROP -- object only, centered consistently in every pose.\n\nCOBWEB CURTAIN prop animation for Lost & Underfound. Object only on flat grey background, no character, no room, no text.\n\nmostly static hotspot; 4-frame ripple triggered by Scuttle's dash."
+        }
+      }
+    }
+  },
+  "environmentalThreats": {
+    "theRoar": {
+      "displayName": "The Roar",
+      "spriteFrames": false,
+      "note": "Vacuum cleaner threat handled through rumble, tremor, ambience, and Act 3 scripting later."
+    }
+  }
+}

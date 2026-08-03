@@ -97,6 +97,7 @@
       player: null,
       walkTarget: null,
       pendingInteraction: null,
+      ended: false,
       clockStart: now(),
       raf: null,
     };
@@ -296,9 +297,22 @@
         renderUi();
       }
       if (after?.lineIds?.length) {
-        playLineSequence(after.lineIds, (state.scene.objects || []).find((object) => object.name === "Pip") || null);
+        const nextAfter = { ...after };
+        delete nextAfter.sceneId;
+        delete nextAfter.lineIds;
+        playLineSequence(after.lineIds, (state.scene.objects || []).find((object) => object.name === "Pip") || null, nextAfter);
         return;
       }
+      if (after?.endGame) endGame(after);
+      drawChoices([]);
+    }
+
+    function endGame(after = {}) {
+      state.ended = true;
+      gameState.ended = true;
+      state.walkTarget = null;
+      state.pendingInteraction = null;
+      if (elements.status) elements.status.textContent = after.status || "The End";
       drawChoices([]);
     }
 
@@ -406,6 +420,7 @@
     }
 
     function click(x, y) {
+      if (state.ended || gameState.ended) return;
       const object = core.objectAt(state.scene, x, y, { includeDialogue: showDebug() });
       if (!object) {
         if (setWalkTarget(x, y)) return;
@@ -501,6 +516,7 @@
       const fresh = core.createGameState(project);
       Object.assign(gameState, fresh);
       state.sequence = null;
+      state.ended = false;
       setScene(project.activeSceneId);
       showText("Scene Log", "Reset. Click a character or hotspot.", null);
       renderUi();

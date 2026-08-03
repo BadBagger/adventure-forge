@@ -152,6 +152,7 @@
       inventory: [...(gameSpec.initialInventory || [])],
       flags: { ...(gameSpec.initialFlags || {}) },
       counters: {},
+      ended: false,
     };
   }
 
@@ -179,6 +180,125 @@
 
   function activeObjectByHotspot(scene, hotspotId) {
     return (scene.objects || []).find((object) => (object.hotspotId || object.id) === hotspotId) || null;
+  }
+
+  function collectGameCompletionIssues(project, options = {}) {
+    const issues = [];
+    const forbidden = options.forbidden || [/script pass required/i, /outline-only/i, /blocked pending/i, /not production-approved/i];
+    const scenes = project.scenes || [];
+    const gameSpec = project.game || {};
+    const target = { tab: "qa" };
+    const requireComplete = options.requireComplete === true || gameSpec.completionRequired === true || Boolean(gameSpec.buildStatus);
+    if (!requireComplete) return issues;
+    if (gameSpec.buildStatus !== "forge-complete-placeholder") {
+      issues.push({ severity: "error", message: "Game build status must be forge-complete-placeholder.", target });
+    }
+    for (const scene of scenes) {
+      scanForbidden(scene.name, `Scene ${scene.name} name`, sceneTarget(scene));
+      for (const layer of scene.layers || []) scanForbidden(layer.name, `${scene.name}: ${layer.name || layer.id}`, sceneTarget(scene));
+      for (const object of scene.objects || []) {
+        scanForbidden(object.name, `${scene.name}: ${object.name || object.id} name`, sceneTarget(scene, object));
+        scanForbidden(object.dialogue, `${scene.name}: ${object.name || object.id} dialogue`, sceneTarget(scene, object));
+        scanForbidden(object.note, `${scene.name}: ${object.name || object.id} note`, sceneTarget(scene, object));
+      }
+      for (const node of scene.dialogue || []) {
+        scanForbidden(node.speaker, `${scene.name}: dialogue speaker`, sceneTarget(scene));
+        scanForbidden(node.line, `${scene.name}: dialogue line`, sceneTarget(scene));
+      }
+    }
+    for (const line of project.script?.lines || []) scanForbidden(line.text, `Script line ${line.line_id}`, target);
+    for (const model of project.assets?.characters || []) {
+      scanForbidden(model.animationBible?.source, `${model.name}: animation source`, { tab: "characters", modelId: model.id });
+      scanForbidden(model.animationBible?.qa, `${model.name}: animation QA`, { tab: "characters", modelId: model.id });
+    }
+
+    const reachable = reachableSceneIds(project);
+    for (const scene of scenes) {
+      if (!reachable.has(scene.id)) issues.push({ severity: "error", message: `${scene.name}: scene is not reachable from the active scene.`, target: sceneTarget(scene) });
+    }
+    if (!hasEndingRule(gameSpec)) issues.push({ severity: "error", message: "Game has no interaction rule that reaches after.endGame.", target });
+    for (const itemId of requiredItemIds(gameSpec)) {
+      if (!obtainableItemIds(gameSpec).has(itemId)) issues.push({ severity: "error", message: `${itemId} is required by a useItem rule but is never obtainable.`, target });
+    }
+    return issues;
+
+    function scanForbidden(value, label, issueTarget) {
+      if (!value) return;
+      const text = String(value);
+      if (forbidden.some((pattern) => pattern.test(text))) {
+        issues.push({ severity: "error", message: `${label} contains blocker text.`, target: issueTarget });
+      }
+    }
+  }
+
+  function reachableSceneIds(project) {
+    const edges = sceneEdges(project);
+    const start = project.activeSceneId || project.scenes?.[0]?.id;
+    const reachable = new Set();
+    const queue = start ? [start] : [];
+    while (queue.length) {
+      const sceneId = queue.shift();
+      if (reachable.has(sceneId)) continue;
+      reachable.add(sceneId);
+      for (const next of edges.get(sceneId) || []) if (!reachable.has(next)) queue.push(next);
+    }
+    return reachable;
+  }
+
+  function sceneEdges(project) {
+    const edges = new Map((project.scenes || []).map((scene) => [scene.id, new Set()]));
+    for (const scene of project.scenes || []) {
+      for (const object of scene.objects || []) if (object.targetSceneId) edges.get(scene.id)?.add(object.targetSceneId);
+      for (const rule of sceneRulesFor(project, scene)) if (rule.after?.sceneId) edges.get(scene.id)?.add(rule.after.sceneId);
+    }
+    return edges;
+  }
+
+  function sceneRulesFor(project, scene) {
+    const gameSpec = project.game || {};
+    const hotspotIds = new Set((scene.objects || []).map((object) => object.hotspotId || object.id));
+    const rules = [];
+    for (const hotspotId of hotspotIds) {
+      const hotspot = gameSpec.hotspots?.[hotspotId];
+      if (!hotspot) continue;
+      for (const value of Object.values(hotspot)) collectRules(value, rules);
+    }
+    return rules;
+  }
+
+  function collectRules(value, out = []) {
+    if (!value) return out;
+    if (Array.isArray(value)) {
+      for (const item of value) collectRules(item, out);
+    } else if (typeof value === "object") {
+      if (value.lineIds || value.cycleLineIds || value.after || value.effects) out.push(value);
+      for (const item of Object.values(value)) if (item && typeof item === "object") collectRules(item, out);
+    }
+    return out;
+  }
+
+  function hasEndingRule(gameSpec) {
+    return collectRules(gameSpec.hotspots || {}).some((rule) => rule.after?.endGame === true);
+  }
+
+  function obtainableItemIds(gameSpec) {
+    const items = new Set(gameSpec.initialInventory || []);
+    for (const rule of collectRules(gameSpec.hotspots || {})) for (const item of rule.effects?.addItems || []) items.add(item);
+    return items;
+  }
+
+  function requiredItemIds(gameSpec) {
+    const items = new Set();
+    for (const hotspot of Object.values(gameSpec.hotspots || {})) {
+      for (const itemId of Object.keys(hotspot.useItem || {})) items.add(itemId);
+    }
+    return items;
+  }
+
+  function sceneTarget(scene, object = null) {
+    const target = { tab: "editor", sceneId: scene.id };
+    if (object) target.objectId = object.id;
+    return target;
   }
 
   function dialogueMatchWords(text) {
@@ -224,6 +344,8 @@
     actorBodyRect,
     rectsOverlap,
     collectOcclusionWarnings,
+    collectGameCompletionIssues,
+    reachableSceneIds,
     createGameState,
     applyEffects,
     pickInteractionRule,
