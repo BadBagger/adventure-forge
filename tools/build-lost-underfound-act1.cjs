@@ -182,8 +182,9 @@ function buildProject() {
   const spriteV2 = "art/act01-production/characters-sprite-v2";
   const layers = [
     imageLayer("background-plate", "Entry chamber furnished room background plate", "background", `${v2}/bg_room.png`, 0, { depth: 0 }),
-    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front.png`, 616, { x: 342, y: 396, w: 470, h: 238, depth: 40 }),
-    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", `${v2}/occluders/gate_front.png`, 605, { x: 850, y: 274, w: 252, h: 330, depth: 42 }),
+    imageLayer("desk-chair-back", "Bramble's chair back", "occlusion", `${v2}/occluders/desk_chair_back.png`, 514, { x: 342, y: 396, w: 470, h: 238, depth: 38 }),
+    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front_actor_gap.png`, 616, { x: 342, y: 396, w: 470, h: 238, depth: 40 }),
+    imageLayer("gate-foreground", "Gate frame behind Old Bottlecap", "occlusion", `${v2}/occluders/gate_front.png`, 603, { x: 850, y: 274, w: 252, h: 330, depth: 42 }),
     imageLayer("cobweb-curtain", "Cobweb curtain foreground", "occlusion", `${v2}/cobweb.png`, 611, { x: 970, y: 250, w: 224, h: 246, depth: 50 }),
     imageLayer("soft-oval-shadow", "Reusable soft oval contact shadow", "background", `${v2}/fx/soft_oval_shadow.png`, 0, { visible: false, shadowAsset: true }),
   ];
@@ -249,8 +250,8 @@ function buildProject() {
     layers,
     objects: [
       { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 64, y: 558, w: 1148, h: 114 },
-      { id: "pip-actor", kind: "character", name: "Pip", x: 686, y: 478, w: 134, h: 194, baseline: 672, modelId: "pip-model", animationState: "idle", facing: "right", flipWhenFacingLeft: true, hotspotId: "pip-self", shadowW: 82, shadowH: 24, shadowOpacity: 0.48 },
-      { id: "bramble-actor", kind: "character", name: "Bramble", x: 462, y: 350, w: 203, h: 165, baseline: 515, modelId: "bramble-model", animationState: "idle", nonInteractive: true, shadowW: 110, shadowH: 22, shadowOpacity: 0.22 },
+      { id: "pip-actor", kind: "character", name: "Pip", x: 701, y: 522, w: 104, h: 150, baseline: 672, modelId: "pip-model", animationState: "idle", facing: "right", flipWhenFacingLeft: true, hotspotId: "pip-self", shadowW: 64, shadowH: 18, shadowOpacity: 0.48 },
+      { id: "bramble-actor", kind: "character", name: "Bramble", x: 515, y: 340, w: 180, h: 175, baseline: 515, modelId: "bramble-model", animationState: "idle", nonInteractive: true, shadowW: 96, shadowH: 20, shadowOpacity: 0.22 },
       { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 888, y: 488, w: 160, h: 116, baseline: 604, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true, shadowW: 130, shadowH: 24, shadowOpacity: 0.46 },
       { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1050, y: 520, w: 124, h: 68, baseline: 588, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true, shadowW: 76, shadowH: 14, shadowOpacity: 0.38 },
       { id: "dust-prop", kind: "prop", name: "Dust Clump", x: 92, y: 592, w: 108, h: 80, baseline: 672, modelId: "dust-clump-model", animationState: "idle", hiddenInPlayable: false, nonInteractive: true, shadowW: 104, shadowH: 22, shadowOpacity: 0.34 },

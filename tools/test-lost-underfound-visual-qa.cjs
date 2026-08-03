@@ -68,9 +68,14 @@ const bramble = model("bramble-model");
 Object.keys(bramble.animations).forEach((state) => assertMotionBudget(bramble, state));
 
 const bottlecapActor = scene.objects.find((object) => object.id === "old-bottlecap-actor");
+const brambleActor = scene.objects.find((object) => object.id === "bramble-actor");
+const chair = scene.layers.find((layer) => layer.id === "desk-chair-back");
+const desk = scene.layers.find((layer) => layer.id === "desk-foreground");
 const gate = scene.layers.find((layer) => layer.id === "gate-foreground");
 const cobweb = scene.layers.find((layer) => layer.id === "cobweb-curtain");
-assert.ok(gate.baseline > bottlecapActor.baseline, "gate foreground must draw in front of Bottlecap");
+assert.ok(chair && chair.baseline < brambleActor.baseline && brambleActor.baseline < desk.baseline, "Bramble must draw seated in the chair, between chair back and counter front");
+assert.ok(pipActor.h < desk.h * 0.7, "Pip must remain visibly smaller than the desk");
+assert.ok(gate.baseline < bottlecapActor.baseline, "gate frame must stay behind Bottlecap so it frames rather than obscures him");
 assert.ok(cobweb.x < gate.x + gate.w && cobweb.x + cobweb.w > gate.x && cobweb.y < gate.y + gate.h, "cobweb must physically overlap the grate instead of floating beside it");
 
 const shadow = scene.layers.find((layer) => layer.id === scene.integration.shadowAssetId);

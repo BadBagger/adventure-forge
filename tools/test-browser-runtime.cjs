@@ -91,6 +91,7 @@ async function runStandalonePlayableTest(page) {
     const scene = runtime.state.scene;
     const bramble = scene.objects.find((object) => object.id === "bramble-actor");
     const pip = scene.objects.find((object) => object.id === "pip-actor");
+    const chair = scene.layers.find((layer) => layer.id === "desk-chair-back");
     const desk = scene.layers.find((layer) => layer.id === "desk-foreground");
     const order = window.ForgeRuntimeCore.sortedDepthRenderables(scene).map((entry) => entry.item.id);
     const crossedOrder = (() => {
@@ -108,6 +109,7 @@ async function runStandalonePlayableTest(page) {
       brambleAnchor: window.ForgeRuntimeCore.dialogueAnchorFor(scene, bramble)?.id,
       completionIssues: window.ForgeRuntimeCore.collectGameCompletionIssues(window.__FORGE_PROJECT__).map((issue) => issue.message),
       brambleBeforeDesk: order.indexOf(bramble.id) < order.indexOf(desk.id),
+      chairBeforeBramble: order.indexOf(chair.id) < order.indexOf(bramble.id),
       pipBeforeDeskAfterCrossing: crossedOrder.indexOf(pip.id) < crossedOrder.indexOf(desk.id),
       walkPoint: { x: walkPoint.x, y: walkPoint.y, areaId: walkPoint.area?.id },
       hitId: hit?.id,
@@ -117,10 +119,11 @@ async function runStandalonePlayableTest(page) {
     };
   });
   assert.deepStrictEqual(conformance.sceneIds, ["under-couch-entry"], "standalone build should be Act 1 only");
-  assert.deepStrictEqual(conformance.layerIds, ["background-plate", "desk-foreground", "gate-foreground", "cobweb-curtain", "soft-oval-shadow"]);
+  assert.deepStrictEqual(conformance.layerIds, ["background-plate", "desk-chair-back", "desk-foreground", "gate-foreground", "cobweb-curtain", "soft-oval-shadow"]);
   assert.strictEqual(conformance.brambleAnchor, "bramble-dialogue-anchor");
   assert.deepStrictEqual(conformance.completionIssues, [], "shipped fixture should pass game-completion QA");
   assert.strictEqual(conformance.brambleBeforeDesk, true, "Bramble should draw behind the desk foreground occluder");
+  assert.strictEqual(conformance.chairBeforeBramble, true, "Bramble should sit in front of the chair back");
   assert.strictEqual(conformance.pipBeforeDeskAfterCrossing, true, "actor depth should flip when its baseline crosses a hotspot baseline");
   assert.deepStrictEqual(conformance.walkPoint, { x: 1212, y: 672, areaId: "walk-band" });
   assert.strictEqual(conformance.hitId, "bramble-desk-hotspot");
