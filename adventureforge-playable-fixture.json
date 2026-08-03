@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "name": "AdventureForge Pilot",
+  "slug": "adventureforge-pilot",
+  "activeSceneId": "forest-clearing",
+  "assets": {
+    "characters": [
+      {
+        "id": "timeline-actor-model",
+        "name": "Timeline Actor",
+        "role": "character",
+        "status": "reviewed",
+        "locked": false,
+        "registration": {
+          "canvas": {
+            "width": 72,
+            "height": 104
+          },
+          "anchor": [
+            36,
+            104
+          ],
+          "baseline": 104
+        },
+        "animations": {
+          "idle": {
+            "frames": [
+              0,
+              1
+            ],
+            "fps": 4,
+            "loop": true
+          },
+          "walk": {
+            "frames": [
+              0,
+              1
+            ],
+            "fps": 8,
+            "loop": true
+          },
+          "talk": {
+            "frames": [
+              0,
+              1
+            ],
+            "fps": 10,
+            "loop": true
+          },
+          "waiting": {
+            "frames": [
+              0
+            ],
+            "fps": 4,
+            "loop": true
+          },
+          "failed": {
+            "frames": [
+              0
+            ],
+            "fps": 4,
+            "loop": false
+          }
+        },
+        "frames": [
+          {
+            "id": "timeline-frame-1",
+            "name": "timeline_actor_walk_01.png",
+            "width": 72,
+            "height": 104,
+            "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABoCAYAAABSQbZxAAABjklEQVR4nO3bwW2DQBBA0YWuUolziNICtWwLOZl7TmnA1aQGIuee/EN2Zgfnf4mTZVgeixEgt2ZmZmb2P1tagbbrcfz0WX9epo5xqQpTBWqpDjMbam0nwhnx/dJA26Cdy0RKA9oG71QWUvopdrZSgLago50xi5xBs4G24KMcvX5nECQQJBAkECQQJNBsoB589x29fmdQBaAedJQzng05g6oA9cFHO+vJYuoM6oN2KvOxa/op1v+4c9nPpH2rAflezMxmFvYbdLm9pb7gu7c/vS6nuMxfJuBEbXd9FJyo7a+PhBMxjvXRcEaPx7t5SCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSCBIIEggSKAsoD3gz2wVxjN0Bu1FkEaOY/gptk9GGr39tdogr58f30v2dk/T8f5y3JdWJK9ikECQQJBAkECQQJBAkECQQJBAkECQQJBAkEDt974AcaBrbVkn4asAAAAASUVORK5CYII="
+          },
+          {
+            "id": "timeline-frame-2",
+            "name": "timeline_actor_walk_02.png",
+            "width": 72,
+            "height": 104,
+            "dataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABoCAYAAABSQbZxAAABlElEQVR4nO3bsW2DQBhA4YOtMolTRFnhZrkVUpk+VRbwNJmBKJHSJX4F93M/+D2JyjIcH4cRIJdiZmZm9phNJWH1uq7/fdaep+lhgeodmFFQ09Fg9oaay4Fxenw/NVDttHORSMOAauedikIafoplbwhQDTraEet1BmUDqsFXnd7rdwZBAkECQQJBAkECZQNqwXffvdfvDMoI1IJmUcR6nUFZgVrnox01K4fOoNZppyJ/+IefYm3jzkVfFVM8tP/NtxoHfC9mZqHtdj5fbm+hj1r/anl6nQ5xmb8MwOm13fmsOL22P58Zp8c45rPjbB3P8FuN7AkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAkECQQJBAk0Cmjp8Ge2DOMJnUFLEqQt4wg/xZbBSFu3P2cb5PXz42fZe7uHaX1/Wb+XkiSvYpBAkECQQJBAkECQQJBAkECQQJBAkECQQJBA5X5fcUZrbZcQW98AAAAASUVORK5CYII="
+          }
+        ]
+      }
+    ]
+  },
+  "script": {
+    "sourceName": "fixture",
+    "text": "",
+    "lastSyncedAt": null
+  },
+  "scenes": [
+    {
+      "id": "forest-clearing",
+      "name": "Forest Clearing",
+      "width": 960,
+      "height": 540,
+      "background": "#1b2a27",
+      "layers": [
+        {
+          "id": "bg",
+          "name": "Background",
+          "type": "background",
+          "depth": 0,
+          "visible": true,
+          "color": "#26374a"
+        }
+      ],
+      "objects": [
+        {
+          "id": "path",
+          "kind": "walkable",
+          "name": "Main path",
+          "x": 80,
+          "y": 388,
+          "w": 780,
+          "h": 82,
+          "note": "Player can walk along this band."
+        },
+        {
+          "id": "timeline-actor",
+          "kind": "character",
+          "name": "Timeline Actor",
+          "modelId": "timeline-actor-model",
+          "x": 430,
+          "y": 220,
+          "w": 72,
+          "h": 104,
+          "animationState": "walk",
+          "dialogue": "Hello from exported playable."
+        },
+        {
+          "id": "door",
+          "kind": "hitbox",
+          "name": "Test Door",
+          "x": 700,
+          "y": 250,
+          "w": 90,
+          "h": 150,
+          "dialogue": "The exported hotspot responds."
+        },
+        {
+          "id": "door-dialogue-anchor",
+          "kind": "dialogue",
+          "name": "Door text anchor",
+          "x": 740,
+          "y": 196,
+          "w": 42,
+          "h": 28,
+          "text": "Door speech position."
+        }
+      ],
+      "dialogue": [
+        {
+          "id": "timeline-dialogue",
+          "speaker": "Timeline Actor",
+          "line": "This line came from the standalone playable export.",
+          "choices": [
+            {
+              "label": "Test choice",
+              "response": "The choice system works."
+            }
+          ]
+        }
+      ],
+      "flags": []
+    }
+  ]
+}

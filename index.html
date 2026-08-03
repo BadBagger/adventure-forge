@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AdventureForge</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">AF</div>
+          <div>
+            <h1>AdventureForge</h1>
+            <p>Codex-first adventure authoring</p>
+          </div>
+        </div>
+
+        <div class="panel compact">
+          <div class="panel-title">Project</div>
+          <input id="projectName" class="text-input" aria-label="Project name" />
+          <input id="projectSlug" class="text-input small-input" aria-label="Project slug" />
+          <div class="export-settings">
+            <label>Target
+              <select id="exportTarget" aria-label="Export target">
+                <option value="standalone-html">Standalone HTML</option>
+                <option value="phaser-scaffold">Phaser Scaffold</option>
+              </select>
+            </label>
+            <label>Debug
+              <select id="exportDebug" aria-label="Export debug overlays">
+                <option value="off">Off</option>
+                <option value="qa">QA Overlays</option>
+              </select>
+            </label>
+          </div>
+          <div class="button-row">
+            <button id="newProject" title="New project">New</button>
+            <button id="exportJson" title="Export JSON">Export</button>
+            <button id="exportPlayable" title="Export playable HTML">Playable</button>
+            <button id="exportPackage" title="Export engine package manifest">Package</button>
+            <label class="file-button" title="Import JSON">
+              Import
+              <input id="importJson" type="file" accept="application/json" />
+            </label>
+          </div>
+          <div class="button-row">
+            <button id="saveLocal" title="Save project to this browser">Save Local</button>
+            <button id="restoreLocal" title="Restore browser autosave">Restore</button>
+            <button id="clearLocal" title="Clear browser autosave">Clear</button>
+          </div>
+          <a id="downloadLink" class="download-link" hidden>Download ready</a>
+          <div class="mini-log" id="autosaveStatus"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Character Models</div>
+          <div id="characterAssetList" class="asset-list"></div>
+          <label class="file-button wide" title="Import transparent PNG animation frames">
+            Import PNG Frames
+            <input id="importFrames" type="file" accept="image/png" multiple />
+          </label>
+          <div class="mini-log" id="assetImportLog"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Scenes</div>
+          <div id="sceneList" class="list"></div>
+          <div class="button-row">
+            <button id="addScene" title="Add a blank scene">Add</button>
+            <button id="duplicateScene" title="Duplicate active scene">Duplicate</button>
+            <button id="deleteScene" title="Delete active scene">Delete</button>
+          </div>
+          <div class="scene-settings">
+            <label>Width <input id="sceneWidth" class="text-input" type="number" min="320" max="3840" step="10" /></label>
+            <label>Height <input id="sceneHeight" class="text-input" type="number" min="180" max="2160" step="10" /></label>
+            <label>Back <input id="sceneBackground" class="text-input" type="color" /></label>
+          </div>
+          <button id="lockScene" class="wide" title="Lock scene settings and deletion">Lock Scene</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Tools</div>
+          <div class="tool-grid" role="tablist" aria-label="Editor tools">
+            <button class="tool active" data-tool="select" title="Select and move">Select</button>
+            <button class="tool" data-tool="hitbox" title="Draw hitboxes">Hitbox</button>
+            <button class="tool" data-tool="dialogue" title="Place dialogue anchors">Dialogue</button>
+            <button class="tool" data-tool="character" title="Place characters">Character</button>
+            <button class="tool" data-tool="walkable" title="Draw walkable areas">Walkable</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Codex Patch</div>
+          <textarea id="codexPatch" placeholder='Paste JSON patch, for example: {"addHitbox":{"name":"door","x":720,"y":250,"w":90,"h":170}}'></textarea>
+          <div class="button-row">
+            <button id="previewPatch">Preview</button>
+            <button id="applyPatch">Apply</button>
+          </div>
+          <div id="patchReview" class="patch-review"></div>
+          <div id="patchPreview" class="validation-list mini-log"></div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <input id="sceneName" class="title-input" aria-label="Scene name" />
+            <div id="sceneMeta" class="meta"></div>
+          </div>
+          <div class="button-row">
+            <button id="undoEdit" title="Undo last editor change">Undo</button>
+            <button id="redoEdit" title="Redo editor change">Redo</button>
+            <button id="toggleGrid" title="Show or hide editor grid">Grid</button>
+            <button id="toggleSnap" title="Snap canvas edits to grid">Snap</button>
+            <button id="toggleLabels" title="Show object and layer labels">Labels</button>
+            <button id="toggleHitboxes" title="Show or hide editable scene object overlays">Hitboxes</button>
+            <button id="toggleBaselines" title="Show all draw baselines">Baselines</button>
+            <input id="gridSize" class="topbar-number" type="number" min="4" max="96" step="4" title="Grid size" aria-label="Grid size" />
+            <button id="zoomFit" title="Fit stage to panel">Fit</button>
+            <button id="zoom100" title="Show stage at 100%">100%</button>
+            <button id="zoom200" title="Show stage at 200%">200%</button>
+            <button id="addLayer">Layer</button>
+            <label class="file-button" title="Import background plate">
+              Background
+              <input id="importBackground" type="file" accept="image/png,image/jpeg,image/webp" />
+            </label>
+            <label class="file-button" title="Import foreground or occlusion layer">
+              Foreground
+              <input id="importSceneLayer" type="file" accept="image/png,image/jpeg,image/webp" />
+            </label>
+            <button id="validateProject">Validate</button>
+            <button id="playPreview">Play</button>
+          </div>
+        </header>
+
+        <nav class="workspace-tabs" aria-label="Workspace sections">
+          <button class="workspace-tab active" data-tab="editor">Editor</button>
+          <button class="workspace-tab" data-tab="characters">Characters</button>
+          <button class="workspace-tab" data-tab="scripting">Scripting</button>
+          <button class="workspace-tab" data-tab="dialogue">Dialogue</button>
+          <button class="workspace-tab" data-tab="qa">QA</button>
+        </nav>
+
+        <section class="tab-page active" id="tab-editor">
+          <section class="stage-wrap">
+            <div class="stage-scroll">
+              <canvas id="stage" width="960" height="540"></canvas>
+            </div>
+            <div class="stage-hint" id="stageHint"></div>
+          </section>
+
+          <section class="lower">
+            <div class="panel layers-panel">
+              <div class="panel-title">Scene Layers</div>
+              <div id="layerList" class="table-list"></div>
+            </div>
+
+            <div class="panel objects-panel">
+              <div class="panel-title">Scene Objects</div>
+              <div id="objectOutliner" class="object-list"></div>
+            </div>
+
+            <div class="panel inspector">
+              <div class="panel-title">Inspector</div>
+              <div id="inspectorBody"></div>
+            </div>
+
+            <div class="panel validation">
+              <div class="panel-title">Validation</div>
+              <div id="validationList" class="validation-list"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="tab-page" id="tab-characters">
+          <div class="content-grid">
+            <div class="panel">
+              <div class="panel-title">Model Library</div>
+              <div class="field">
+                <label>Model Name <input id="modelName" class="text-input" /></label>
+              </div>
+              <div class="field">
+                <label>Role <input id="modelRole" class="text-input" placeholder="npc, player, prop actor" /></label>
+              </div>
+              <div class="button-row">
+                <button id="addModel">Add Model</button>
+                <button id="deleteModel">Delete Model</button>
+              </div>
+              <div id="modelLibrary" class="model-library"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Frame Preview</div>
+              <div class="button-row">
+                <button id="toggleOnionSkin">Onion Skin</button>
+                <button id="lockModel">Lock Model</button>
+                <select id="modelStatus" aria-label="Model status">
+                  <option value="provisional">Provisional</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="final">Final</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+              <canvas id="framePreview" width="480" height="320"></canvas>
+              <div class="field inline">
+                <label>Anchor X <input id="anchorX" class="text-input" type="number" /></label>
+                <label>Anchor Y <input id="anchorY" class="text-input" type="number" /></label>
+              </div>
+              <div class="field">
+                <label>Baseline <input id="modelBaseline" class="text-input" type="number" /></label>
+              </div>
+              <div id="frameDetails" class="mini-log"></div>
+              <div id="frameList" class="frame-list"></div>
+              <div id="modelQaList" class="validation-list"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">State Timeline</div>
+              <div class="field">
+                <label>Animation State</label>
+                <select id="animationState">
+                  <option value="idle">Idle</option>
+                  <option value="walk">Walk</option>
+                  <option value="talk">Talk</option>
+                  <option value="waiting">Waiting</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Frame Indices</label>
+                <input id="stateFrames" class="text-input" placeholder="0,1,2" />
+              </div>
+              <div class="field inline">
+                <label>FPS <input id="stateFps" class="text-input" type="number" min="1" max="24" /></label>
+                <label>Loop <select id="stateLoop"><option value="true">Yes</option><option value="false">No</option></select></label>
+              </div>
+              <div class="button-row">
+                <button id="assignAllFrames">Assign All</button>
+                <button id="playState">Play State</button>
+                <button id="stopState">Stop</button>
+              </div>
+              <div id="stateTimeline" class="state-timeline"></div>
+              <div class="timeline-hitbox-editor">
+                <div class="panel-title small">Frame Hitboxes</div>
+                <div class="field">
+                  <label>Name <input id="timelineHitboxName" class="text-input" placeholder="body, hand, talk trigger" /></label>
+                </div>
+                <div class="field inline">
+                  <label>Frame <input id="timelineHitboxFrame" class="text-input" type="number" min="0" /></label>
+                  <label>Kind
+                    <select id="timelineHitboxKind">
+                      <option value="body">Body</option>
+                      <option value="interaction">Interaction</option>
+                      <option value="mouth">Mouth</option>
+                      <option value="prop">Prop</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="field inline">
+                  <label>X <input id="timelineHitboxX" class="text-input" type="number" /></label>
+                  <label>Y <input id="timelineHitboxY" class="text-input" type="number" /></label>
+                </div>
+                <div class="field inline">
+                  <label>W <input id="timelineHitboxW" class="text-input" type="number" min="1" /></label>
+                  <label>H <input id="timelineHitboxH" class="text-input" type="number" min="1" /></label>
+                </div>
+                <div class="button-row">
+                  <button id="addTimelineHitbox">Add Box</button>
+                  <button id="deleteTimelineHitbox">Delete Box</button>
+                </div>
+                <div id="timelineHitboxList" class="timeline-hitbox-list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-page" id="tab-scripting">
+          <div class="content-grid scripting-grid">
+            <div class="panel">
+              <div class="panel-title">Script Import Sync</div>
+              <textarea id="scriptText" spellcheck="false"></textarea>
+              <div class="button-row">
+                <label class="file-button" title="Import script file">
+                  Import Script
+                  <input id="importScript" type="file" accept=".txt,.json,.md" />
+                </label>
+                <button id="previewScriptSync">Preview Sync</button>
+                <button id="syncScript">Sync to Scene</button>
+                <button id="exportScript">Export Script</button>
+              </div>
+              <a id="scriptDownloadLink" class="download-link" hidden>Download script</a>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Sync Results</div>
+              <div id="scriptSyncReview" class="sync-review"></div>
+              <div id="scriptSyncLog" class="validation-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-page" id="tab-dialogue">
+          <div class="content-grid dialogue-grid">
+            <div class="panel">
+              <div class="panel-title">Dialogue Graph</div>
+              <div class="button-row">
+                <button id="addDialogueNode">Add Node</button>
+                <button id="layoutDialogue">Layout</button>
+              </div>
+              <div id="dialogueBranchMap" class="dialogue-branch-map"></div>
+              <div id="dialogueGraph" class="dialogue-graph"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Node Inspector</div>
+              <div id="dialogueInspector"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-page" id="tab-qa">
+          <div class="content-grid">
+            <div class="panel">
+              <div class="panel-title">Project QA</div>
+              <div id="qaSummary" class="validation-list"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Depth QA</div>
+              <div id="depthQaSummary" class="validation-list"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Codex Handoff</div>
+              <pre id="handoffSummary" class="handoff"></pre>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="playModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Playable preview">
+      <div class="modal-content">
+        <div class="modal-head">
+          <div>
+            <h2>Playable Preview</h2>
+            <p id="previewStatus">Click highlighted zones to test interactions.</p>
+          </div>
+          <button id="closePreview" title="Close preview">Close</button>
+        </div>
+        <div class="preview-grid">
+          <canvas id="previewCanvas" width="960" height="540"></canvas>
+          <aside class="dialogue-box">
+            <h3 id="dialogueTitle">Scene Log</h3>
+            <div id="dialogueOutput"></div>
+            <div id="choiceList" class="choice-list"></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
