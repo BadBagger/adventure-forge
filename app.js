@@ -1718,7 +1718,7 @@ function drawBaselineOverlay(target, scene) {
     target.fillText(`${Math.round(conflict.distance)}px baseline gap`, clamp(x + 4, 4, scene.width - 150), Math.max(14, y - 9));
   });
   collectOcclusionQa(scene).forEach((warning) => {
-    const actorRect = actorBodyRect(warning.actor);
+    const actorRect = warning.actorBody;
     target.fillStyle = "rgba(241,180,92,0.12)";
     target.fillRect(actorRect.x, actorRect.y, actorRect.w, actorRect.h);
     target.strokeStyle = "#f1b45c";
@@ -1873,30 +1873,10 @@ function collectProjectDepthQa() {
 }
 
 function collectOcclusionQa(scene = activeScene()) {
-  const warnings = [];
-  const occluders = (scene.layers || []).filter((layer) => layer.visible !== false && (layer.type === "occlusion" || layer.type === "foreground"));
-  const actors = (scene.objects || []).filter((object) => object.kind === "character");
-  actors.forEach((actor) => {
-    const actorBaseline = renderableBaseline(actor, scene);
-    occluders.forEach((layer) => {
-      const layerBaseline = renderableBaseline(layer, scene);
-      if (actorBaseline >= layerBaseline) return;
-      const layerRect = renderableRect(layer, scene);
-      const bodyRect = actorBodyRect(actor);
-      if (!rectsOverlap(bodyRect, layerRect)) {
-        warnings.push({
-          sceneId: scene.id,
-          sceneName: scene.name,
-          severity: "warning",
-          message: `${scene.name}: ${actor.name} is depth-sorted behind ${layer.name || layer.type}, but that occlusion layer does not cover the actor body.`,
-          actor,
-          layer,
-          target: { tab: "editor", sceneId: scene.id, objectId: actor.id },
-        });
-      }
-    });
-  });
-  return warnings;
+  return ForgeCore.collectOcclusionWarnings(scene).map((warning) => ({
+    ...warning,
+    target: { tab: "editor", sceneId: scene.id, objectId: warning.actor.id },
+  }));
 }
 
 function depthEntryLabel(entry) {
@@ -1916,30 +1896,8 @@ function renderableSpan(item, scene) {
   return { start: x, end: x + w };
 }
 
-function renderableRect(item, scene) {
-  return {
-    x: Number(item.x ?? 0),
-    y: Number(item.y ?? 0),
-    w: Number(item.w ?? scene.width),
-    h: Number(item.h ?? scene.height),
-  };
-}
-
-function actorBodyRect(actor) {
-  return {
-    x: Number(actor.x || 0),
-    y: Number(actor.y || 0) + Number(actor.h || 0) * 0.2,
-    w: Number(actor.w || 0),
-    h: Number(actor.h || 0) * 0.8,
-  };
-}
-
 function spansOverlap(a, b) {
   return Math.max(a.start, b.start) <= Math.min(a.end, b.end);
-}
-
-function rectsOverlap(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
 function renderableBaseline(item, scene = activeScene()) {

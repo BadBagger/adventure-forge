@@ -48,6 +48,20 @@ function main() {
   assert.ok(crossedOrder.indexOf("hero") < crossedOrder.indexOf("counter"), "actor should flip behind counter when baseline crosses");
   scene.objects[1].baseline = 128;
 
+  const missingOcclusionScene = JSON.parse(JSON.stringify(scene));
+  missingOcclusionScene.layers[1].x = 0;
+  missingOcclusionScene.layers[1].w = 20;
+  missingOcclusionScene.objects[1].baseline = 110;
+  const occlusionWarnings = core.collectOcclusionWarnings(missingOcclusionScene);
+  assert.strictEqual(occlusionWarnings.length, 1, "actor behind an uncovered occluder should produce one warning");
+  assert.strictEqual(occlusionWarnings[0].actor.id, "hero");
+  assert.strictEqual(occlusionWarnings[0].layer.id, "counter");
+  assert.deepStrictEqual(occlusionWarnings[0].actorBody, { x: 105, y: 72, w: 40, h: 56 });
+
+  const coveredOcclusionScene = JSON.parse(JSON.stringify(scene));
+  coveredOcclusionScene.objects[1].baseline = 110;
+  assert.strictEqual(core.collectOcclusionWarnings(coveredOcclusionScene).length, 0, "actor behind a covering occluder should pass occlusion QA");
+
   assert.strictEqual(core.dialogueAnchorFor(scene, scene.objects[1]).id, "anchor");
   assert.strictEqual(core.currentFrame(model, "stamp", 0).id, "f1");
   assert.strictEqual(core.currentFrame(model, "stamp", 500).id, "f2");

@@ -92,6 +92,58 @@
     return { x, y, width, height, lines, stemX: clamp(sourceCenter, x + 22, x + width - 22) };
   }
 
+  function renderableRect(item, scene = {}) {
+    return {
+      x: Number(item?.x ?? 0),
+      y: Number(item?.y ?? 0),
+      w: Number(item?.w ?? scene.width ?? 0),
+      h: Number(item?.h ?? scene.height ?? 0),
+    };
+  }
+
+  function actorBodyRect(actor) {
+    return {
+      x: Number(actor?.x || 0),
+      y: Number(actor?.y || 0) + Number(actor?.h || 0) * 0.2,
+      w: Number(actor?.w || 0),
+      h: Number(actor?.h || 0) * 0.8,
+    };
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function collectOcclusionWarnings(scene, options = {}) {
+    const severity = options.severity || "warning";
+    const occluders = (scene.layers || []).filter((layer) => layer.visible !== false && (layer.type === "occlusion" || layer.type === "foreground"));
+    const actors = (scene.objects || []).filter((object) => object.kind === "character" && object.hiddenInPlayable !== true);
+    const warnings = [];
+    for (const actor of actors) {
+      const actorBaseline = baseline(actor, scene);
+      for (const layer of occluders) {
+        const layerBaseline = baseline(layer, scene);
+        if (actorBaseline >= layerBaseline) continue;
+        const layerRect = renderableRect(layer, scene);
+        const bodyRect = actorBodyRect(actor);
+        if (rectsOverlap(bodyRect, layerRect)) continue;
+        warnings.push({
+          sceneId: scene.id,
+          sceneName: scene.name,
+          severity,
+          message: `${scene.name}: ${actor.name} is depth-sorted behind ${layer.name || layer.type}, but that occlusion layer does not cover the actor body.`,
+          actor,
+          layer,
+          actorBody: bodyRect,
+          occluderRect: layerRect,
+          actorBaseline,
+          layerBaseline,
+        });
+      }
+    }
+    return warnings;
+  }
+
   function createGameState(project) {
     const gameSpec = project.game || {};
     return {
@@ -168,6 +220,10 @@
     nearestWalkPoint,
     dialogueAnchorFor,
     bubbleBox,
+    renderableRect,
+    actorBodyRect,
+    rectsOverlap,
+    collectOcclusionWarnings,
     createGameState,
     applyEffects,
     pickInteractionRule,

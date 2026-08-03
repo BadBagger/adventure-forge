@@ -71,11 +71,28 @@ async function runStandalonePlayableTest(page) {
     const bramble = scene.objects.find((object) => object.id === "bramble-actor");
     const pip = scene.objects.find((object) => object.id === "pip-actor");
     const desk = scene.objects.find((object) => object.id === "bramble-desk-hotspot");
+    const deskOccluder = scene.layers.find((layer) => layer.id === "logical-desk-front-occluder");
     const order = window.ForgeRuntimeCore.sortedDepthRenderables(scene).map((entry) => entry.item.id);
     const crossedOrder = (() => {
       const originalBaseline = pip.baseline;
       pip.baseline = 300;
       const result = window.ForgeRuntimeCore.sortedDepthRenderables(scene).map((entry) => entry.item.id);
+      pip.baseline = originalBaseline;
+      return result;
+    })();
+    const occlusionWarnings = (() => {
+      const originalX = deskOccluder.x;
+      const originalW = deskOccluder.w;
+      const originalVisible = deskOccluder.visible;
+      const originalBaseline = pip.baseline;
+      deskOccluder.x = 0;
+      deskOccluder.w = 20;
+      deskOccluder.visible = true;
+      pip.baseline = 300;
+      const result = window.ForgeRuntimeCore.collectOcclusionWarnings(scene).map((warning) => `${warning.actor.id}:${warning.layer.id}`);
+      deskOccluder.x = originalX;
+      deskOccluder.w = originalW;
+      deskOccluder.visible = originalVisible;
       pip.baseline = originalBaseline;
       return result;
     })();
@@ -85,6 +102,7 @@ async function runStandalonePlayableTest(page) {
       brambleAnchor: window.ForgeRuntimeCore.dialogueAnchorFor(scene, bramble)?.id,
       deskBeforeBramble: order.indexOf(desk.id) < order.indexOf(bramble.id),
       pipBeforeDeskAfterCrossing: crossedOrder.indexOf(pip.id) < crossedOrder.indexOf(desk.id),
+      occlusionWarnings,
       walkPoint: { x: walkPoint.x, y: walkPoint.y, areaId: walkPoint.area?.id },
       hitId: hit?.id,
     };
@@ -92,6 +110,7 @@ async function runStandalonePlayableTest(page) {
   assert.strictEqual(conformance.brambleAnchor, "bramble-dialogue-anchor");
   assert.strictEqual(conformance.deskBeforeBramble, false, "Bramble should draw before the higher-baseline desk hotspot");
   assert.strictEqual(conformance.pipBeforeDeskAfterCrossing, true, "actor depth should flip when its baseline crosses a hotspot baseline");
+  assert.ok(conformance.occlusionWarnings.includes("pip-actor:logical-desk-front-occluder"), "exported runtime core should flag missing occlusion coverage");
   assert.deepStrictEqual(conformance.walkPoint, { x: 932, y: 458, areaId: "walk-band" });
   assert.strictEqual(conformance.hitId, "bramble-desk-hotspot");
 
