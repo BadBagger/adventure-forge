@@ -1,0 +1,438 @@
+const fs = require("fs");
+const path = require("path");
+const { PNG } = require("pngjs");
+const { alphaBounds } = require("./import-asset-folder.cjs");
+
+const forgeRoot = path.join(__dirname, "..");
+const lostRoot = process.argv[2] || path.join(forgeRoot, "..", "..", "you-re-starting-a-new-project");
+const outputProject = path.join(forgeRoot, "adventureforge-playable-fixture.json");
+const outputPlayable = path.join(forgeRoot, "adventureforge-pilot.playable.html");
+const lostForgeDir = path.join(lostRoot, "forge");
+
+const { buildPlayableHtml } = require("./build-playable.cjs");
+
+const sceneSize = { width: 1600, height: 900 };
+
+const hotspotDefs = {
+  "couch-ceiling": ["Couch-Bottom Ceiling", 192, 36, 1216, 153],
+  "dust-clump": ["Dust Clump", 32, 612, 176, 108],
+  "cubby-wall": ["Lost & Found Cubby Wall", 0, 180, 320, 432],
+  "sign-in-log": ["Sign-In Log", 576, 432, 256, 81],
+  "popcorn-boulder": ["Popcorn Kernel Boulder", 1264, 513, 208, 189],
+  "cobweb-curtain": ["Cobweb Curtain", 1456, 288, 128, 270],
+  "bramble-desk": ["Bramble's Desk", 560, 387, 384, 162],
+  "toll-gate": ["The Grate / Old Bottlecap", 1104, 279, 336, 351],
+};
+
+const lineEvents = {
+  "act01-005-pip-dustclump-search-success": { name: "found-button" },
+  "act01-011-pip-signinlog-examine": { sfx: ["signinlog-open"] },
+  "act01-013-pip-popcorn-use-fail": { sfx: ["popcorn-thud"] },
+  "act01-014-pip-cobweb-examine": { name: "cobweb-cameo", sfx: ["cobweb-rustle"] },
+  "act01-015-scuttle-cameo-bark": { name: "scuttle-cameo", sfx: ["scuttle-dash"] },
+  "act01-038-bottlecap-no-toll": { name: "toll-refused", sfx: ["toll-refused"] },
+  "act01-039-bottlecap-toll-accepted": { name: "toll-paid", sfx: ["toll-gate-open"], music: ["toll-paid-stinger"] },
+  "act01-049-pip-transition-out": { name: "act-complete" },
+};
+
+function readJson(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(lostRoot, relativePath), "utf8"));
+}
+
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+function mimeFor(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".ogg") return "audio/ogg";
+  if (ext === ".mp3") return "audio/mpeg";
+  if (ext === ".wav") return "audio/wav";
+  return "application/octet-stream";
+}
+
+function dataUrl(filePath) {
+  return `data:${mimeFor(filePath)};base64,${fs.readFileSync(filePath).toString("base64")}`;
+}
+
+function imageLayer(id, name, type, relativePath, baseline, extra = {}) {
+  const filePath = path.join(lostRoot, relativePath);
+  return {
+    id,
+    name,
+    type,
+    x: 0,
+    y: 0,
+    w: sceneSize.width,
+    h: sceneSize.height,
+    baseline,
+    visible: true,
+    dataUrl: dataUrl(filePath),
+    sourcePath: relativePath.replace(/\\/g, "/"),
+    ...extra,
+  };
+}
+
+function frameFromFile(id, filePath) {
+  const png = PNG.sync.read(fs.readFileSync(filePath));
+  return {
+    id,
+    name: path.basename(filePath),
+    width: png.width,
+    height: png.height,
+    alphaBounds: alphaBounds(png),
+    dataUrl: dataUrl(filePath),
+    sourcePath: path.relative(lostRoot, filePath).replace(/\\/g, "/"),
+  };
+}
+
+function pngs(relativeDir, limit = Infinity) {
+  const dir = path.join(lostRoot, relativeDir);
+  return fs.readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".png") && !entry.name.toLowerCase().includes("onion"))
+    .map((entry) => path.join(dir, entry.name))
+    .sort((a, b) => a.localeCompare(b))
+    .slice(0, limit);
+}
+
+function modelFromDirs(id, name, status, dirs) {
+  const frames = [];
+  const animations = {};
+  for (const [state, spec] of Object.entries(dirs)) {
+    const files = pngs(spec.dir, spec.count);
+    const start = frames.length;
+    frames.push(...files.map((file, index) => frameFromFile(`${id}-${state}-${String(index + 1).padStart(2, "0")}`, file)));
+    animations[state] = {
+      frames: files.map((_, index) => start + index),
+      fps: spec.fps,
+      loop: spec.loop,
+      holds: spec.holds,
+    };
+  }
+  const first = frames[0];
+  return {
+    id,
+    name,
+    status,
+    locked: status === "approved",
+    registration: first ? { canvas: { width: first.width, height: first.height }, anchor: [Math.round(first.width / 2), first.height], baseline: first.height } : {},
+    frames,
+    animations,
+  };
+}
+
+function propModel(id, name, state, dir, fps, loop, count = Infinity) {
+  return modelFromDirs(id, name, "provisional", { [state]: { dir, fps, loop, count } });
+}
+
+function buildLines() {
+  const script = readJson("script/ACT_01_SCRIPT.json");
+  const dialogue = readJson("script/ACT_01_DIALOGUE.json");
+  const dialogueById = new Map(dialogue.lines.map((line) => [line.line_id, line]));
+  return script.lines.map((scriptLine) => {
+    const voiceLine = dialogueById.get(scriptLine.line_id);
+    const audioFile = voiceLine?.audio_filename ? path.join(lostRoot, voiceLine.audio_filename) : null;
+    return {
+      ...scriptLine,
+      text: voiceLine?.text || scriptLine.text,
+      audio: audioFile && fs.existsSync(audioFile) ? voiceLine.audio_filename.replace(/^public\/audio\//, "audio/") : null,
+      audioDataUrl: audioFile && fs.existsSync(audioFile) ? dataUrl(audioFile) : null,
+      duration_s: voiceLine?.duration_s || null,
+      event: lineEvents[scriptLine.line_id] || null,
+    };
+  });
+}
+
+function buildAudio() {
+  const manifest = readJson("public/audio/AUDIO_MANIFEST.json");
+  const cues = manifest.cues.map((cue) => {
+    const filePath = path.join(lostRoot, "public", "audio", cue.filename);
+    return {
+      ...cue,
+      id: cue.trigger,
+      dataUrl: fs.existsSync(filePath) ? dataUrl(filePath) : null,
+    };
+  });
+  return {
+    cues,
+    manifestNote: manifest.voiceDialogueNote,
+    sourcingNote: manifest.sourcingNote,
+  };
+}
+
+function buildCastLibrary() {
+  const libraryPath = path.join(forgeRoot, "imports", "lost-underfound", "cast-animation-library.json");
+  const library = JSON.parse(fs.readFileSync(libraryPath, "utf8"));
+  library.scope = "act-1-playable";
+  library.characters.grommet.deferred = true;
+  return library;
+}
+
+function buildProject() {
+  const scriptLines = buildLines();
+  const audio = buildAudio();
+  const castAnimationLibrary = buildCastLibrary();
+  const layers = [
+    imageLayer("background-plate", "Entry chamber background plate", "background", "art/act01-production/scene/entry-chamber-bg.png", 0, { depth: 0 }),
+    imageLayer("cubby-wall", "Lost and Underfound cubby wall", "midground", "art/act01-production/scene/entry-chamber-cubby-wall.png", 430, { depth: 10 }),
+    imageLayer("cobweb-curtain", "Cobweb curtain", "midground", "art/act01-production/scene/entry-chamber-cobweb-curtain.png", 470, { depth: 12 }),
+    imageLayer("popcorn-boulder", "Popcorn kernel boulder", "prop", "art/act01-production/scene/entry-chamber-popcorn-boulder.png", 708, { depth: 20 }),
+    imageLayer("desk-back", "Bramble desk back", "midground", "art/act01-production/scene/entry-chamber-desk-back.png", 520, { depth: 24 }),
+    imageLayer("gate-back", "Gate back plate", "midground", "art/act01-production/scene/entry-chamber-gate-back.png", 585, { depth: 25 }),
+    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", "art/act01-production/scene/entry-chamber-desk-foreground.png", 560, { depth: 40 }),
+    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", "art/act01-production/scene/entry-chamber-gate-foreground.png", 620, { depth: 42 }),
+  ];
+  const characters = [
+    {
+      ...modelFromDirs("pip-model", "Pip", "provisional", {
+        idle: { dir: "art/act01-production/characters/pip/idle", count: 8, fps: 8, loop: true },
+        walk: { dir: "art/act01-production/characters/pip/walk", count: 9, fps: 12, loop: true },
+        pickup: { dir: "art/act01-production/characters/pip/dust-reach", count: 8, fps: 12, loop: false },
+        handoff: { dir: "art/act01-production/characters/pip/toll-paid", count: 6, fps: 12, loop: false },
+        relief: { dir: "art/act01-production/characters/pip/toll-paid", count: 6, fps: 10, loop: false },
+      }),
+      scale: 1,
+    },
+    {
+      ...modelFromDirs("bramble-model", "Bramble", "provisional", {
+        idle: { dir: "art/act01-production/characters/bramble/idle", count: 10, fps: 10, loop: true },
+        talk: { dir: "art/act01-production/characters/bramble/talk", count: 6, fps: 10, loop: true },
+        greeting: { dir: "art/act01-production/characters/bramble/talk", count: 5, fps: 10, loop: false },
+        questGiver: { dir: "art/act01-production/characters/bramble/talk", count: 6, fps: 10, loop: false },
+        wrongAction: { dir: "art/act01-production/characters/bramble/talk", count: 4, fps: 10, loop: false },
+        postGate: { dir: "art/act01-production/characters/bramble/talk", count: 4, fps: 10, loop: false },
+      }),
+      scale: 0.85,
+    },
+    {
+      ...modelFromDirs("old-bottlecap-model", "Old Bottlecap", "provisional", {
+        idle: { dir: "art/act01-production/characters/old-bottlecap/idle", count: 8, fps: 6, loop: true },
+        tollRefused: { dir: "art/act01-production/characters/old-bottlecap/toll-refused", count: 5, fps: 8, loop: false },
+        tollPaid: { dir: "art/act01-production/characters/old-bottlecap/toll-paid", count: 7, fps: 8, loop: false, holds: [1, 1, 1, 1, 2, 1, 1] },
+        talk: { dir: "art/act01-production/characters/old-bottlecap/toll-refused", count: 4, fps: 8, loop: true },
+      }),
+      scale: 0.6,
+    },
+    {
+      ...modelFromDirs("scuttle-model", "Scuttle", "provisional", {
+        dash: { dir: "art/act01-production/characters/scuttle/dash", count: 5, fps: 16, loop: false },
+        talk: { dir: "art/act01-production/characters/scuttle/dash", count: 4, fps: 10, loop: false },
+        idle: { dir: "art/act01-production/characters/scuttle/dash", count: 1, fps: 6, loop: true },
+      }),
+      scale: 0.35,
+    },
+    propModel("dust-clump-model", "Dust Clump", "idle", "art/act01-production/props/dust-clump-reveal", 6, true, 4),
+    propModel("grate-model", "The Grate", "open", "art/act01-production/props/grate-open", 8, false, 4),
+  ];
+
+  const scene = {
+    id: "under-couch-entry",
+    name: "Act 1 - The Crack Under the Couch",
+    width: sceneSize.width,
+    height: sceneSize.height,
+    background: "#21170f",
+    layers,
+    objects: [
+      { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 46, y: 650, w: 1470, h: 122 },
+      { id: "pip-actor", kind: "character", name: "Pip", x: 740, y: 577, w: 104, h: 150, baseline: 727, modelId: "pip-model", animationState: "idle", hotspotId: "pip-self" },
+      { id: "bramble-actor", kind: "character", name: "Bramble", x: 590, y: 385, w: 262, h: 224, baseline: 548, modelId: "bramble-model", animationState: "idle", nonInteractive: true },
+      { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 1238, y: 538, w: 112, h: 80, baseline: 613, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true },
+      { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1450, y: 574, w: 80, h: 42, baseline: 616, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true },
+      { id: "dust-prop", kind: "prop", name: "Dust Clump", x: 76, y: 650, w: 78, h: 60, baseline: 710, modelId: "dust-clump-model", animationState: "idle", hiddenInPlayable: false, nonInteractive: true },
+      { id: "grate-animation-prop", kind: "prop", name: "Opening Grate", x: 1110, y: 390, w: 330, h: 275, baseline: 630, modelId: "grate-model", animationState: "open", hiddenInPlayable: true, nonInteractive: true },
+      ...Object.entries(hotspotDefs).map(([id, [name, x, y, w, h]]) => ({
+        id: `${id}-hotspot`,
+        kind: "hitbox",
+        name,
+        x,
+        y,
+        w,
+        h,
+        baseline: y + h,
+        hotspotId: id,
+      })),
+      { id: "pip-dialogue-anchor", kind: "dialogue", name: "Pip dialogue anchor", x: 715, y: 500, w: 170, h: 44, baseline: 544 },
+      { id: "bramble-dialogue-anchor", kind: "dialogue", name: "Bramble dialogue anchor", x: 590, y: 314, w: 260, h: 44, baseline: 358 },
+      { id: "old-bottlecap-dialogue-anchor", kind: "dialogue", name: "Old Bottlecap dialogue anchor", x: 1178, y: 460, w: 230, h: 44, baseline: 504 },
+      { id: "scuttle-dialogue-anchor", kind: "dialogue", name: "Scuttle dialogue anchor", x: 1390, y: 486, w: 180, h: 44, baseline: 530 },
+    ],
+    dialogue: [],
+    flags: {},
+    locked: false,
+  };
+
+  return {
+    version: 1,
+    name: "Lost & Underfound - Act 1 Forge Build",
+    slug: "lost-underfound-act-1-forge-build",
+    activeSceneId: "under-couch-entry",
+    assets: { characters, castAnimationLibrary, audio },
+    script: { lines: scriptLines },
+    scenes: [scene],
+    export: {
+      target: "standalone-html",
+      debug: true,
+      debugOverlays: false,
+      notes: "AdventureForge production build for Act 1 only. Acts 2-3 require script/design passes before content buildout.",
+    },
+    game: buildGameSpec(),
+  };
+}
+
+function buildGameSpec() {
+  return {
+    engine: "AdventureForge rules v1",
+    status: "Act 1 playable production pass in AdventureForge.",
+    buildStatus: "forge-complete-placeholder",
+    completionRequired: true,
+    defaultMode: "inspect",
+    initialInventory: [],
+    initialFlags: {},
+    items: {
+      button: { name: "Button", description: "Small, round, and apparently valid currency." },
+    },
+    startLineIds: ["act01-001-pip-cold-open-landing", "act01-002-pip-cold-open-goal"],
+    fallbacks: {
+      useScenery: ["act01-046-pip-fallback-use-scenery"],
+      examineSelf: ["act01-047-pip-fallback-examine-self"],
+      tryExit: ["act01-048-pip-fallback-try-exit"],
+    },
+    audio: {
+      ambience: "scene_underneath_ambience",
+      uiSelect: "ui_select",
+      footstep: ["footstep", "footstep"],
+    },
+    eventActions: {
+      "found-button": {
+        durationMs: 1600,
+        sfx: ["found-button", "button_pickup"],
+        actors: [
+          { objectId: "pip-actor", state: "pickup" },
+          { objectId: "dust-prop", state: "idle" },
+        ],
+      },
+      "toll-refused": {
+        durationMs: 1200,
+        sfx: ["toll-refused"],
+        actors: [{ objectId: "old-bottlecap-actor", state: "tollRefused" }],
+      },
+      "toll-paid": {
+        durationMs: 2600,
+        sfx: ["toll-paid"],
+        music: ["toll-paid"],
+        actors: [
+          { objectId: "pip-actor", state: "handoff" },
+          { objectId: "old-bottlecap-actor", state: "tollPaid" },
+          { objectId: "grate-animation-prop", state: "open", hidden: false },
+        ],
+      },
+      "scuttle-cameo": {
+        durationMs: 1450,
+        sfx: ["scuttle_cameo"],
+        actors: [{ objectId: "scuttle-actor", state: "dash", hidden: false }],
+      },
+      "act-complete": {
+        durationMs: 1200,
+        actors: [{ objectId: "pip-actor", state: "relief" }],
+      },
+    },
+    hotspots: {
+      "pip-self": { inspect: [{ lineIds: ["act01-047-pip-fallback-examine-self"] }], use: [{ lineIds: ["act01-047-pip-fallback-examine-self"] }] },
+      "couch-ceiling": { inspect: [{ lineIds: ["act01-003-pip-ceiling-examine"] }], use: [{ lineIds: ["act01-046-pip-fallback-use-scenery"] }] },
+      "dust-clump": {
+        inspect: [
+          { unlessFlag: "dustSearched", lineIds: ["act01-004-pip-dustclump-examine"] },
+          { lineIds: ["act01-006-pip-dustclump-search-again"], default: true },
+        ],
+        use: [
+          { unlessFlag: "dustSearched", lineIds: ["act01-005-pip-dustclump-search-success"], effects: { setFlags: ["dustSearched"], addItems: ["button"] } },
+          { lineIds: ["act01-006-pip-dustclump-search-again"], default: true },
+        ],
+      },
+      "cubby-wall": {
+        inspect: [
+          { onceCounter: "cubby-intro", lineIds: ["act01-007-pip-cubbywall-examine-1st"], sfx: ["cubby_wall_inspect"] },
+          { id: "cubby-rotate", cycleLineIds: ["act01-008-pip-cubbywall-rotate-1", "act01-009-pip-cubbywall-rotate-2", "act01-010-pip-cubbywall-rotate-3"], sfx: ["cubby_wall_inspect"], default: true },
+        ],
+        use: [{ lineIds: ["act01-046-pip-fallback-use-scenery"] }],
+      },
+      "sign-in-log": { inspect: [{ lineIds: ["act01-011-pip-signinlog-examine"], sfx: ["sign_in_log_inspect"] }], use: [{ lineIds: ["act01-046-pip-fallback-use-scenery"] }] },
+      "popcorn-boulder": { inspect: [{ lineIds: ["act01-012-pip-popcorn-examine"] }], use: [{ lineIds: ["act01-013-pip-popcorn-use-fail"], sfx: ["popcorn_boulder_use"] }] },
+      "cobweb-curtain": {
+        inspect: [
+          { unlessFlag: "scuttleSeen", lineIds: ["act01-014-pip-cobweb-examine", "act01-015-scuttle-cameo-bark", "act01-016-pip-cobweb-reaction"], effects: { setFlags: ["scuttleSeen"] } },
+          { lineIds: ["act01-014-pip-cobweb-examine"], default: true },
+        ],
+        use: [{ lineIds: ["act01-048-pip-fallback-try-exit"] }],
+      },
+      "bramble-desk": {
+        inspect: [{ lineIds: ["act01-036-bramble-wrong-action"], effects: { animationState: { objectId: "bramble-actor", state: "wrongAction" } } }],
+        use: [{ lineIds: ["act01-036-bramble-wrong-action"], effects: { animationState: { objectId: "bramble-actor", state: "wrongAction" } } }],
+      },
+      "toll-gate": {
+        inspect: [
+          { requiresFlag: "gateOpen", lineIds: ["act01-043-pip-gate-reexamine-open"] },
+          { lineIds: ["act01-037-pip-gate-examine"], default: true },
+        ],
+        use: [
+          { requiresFlag: "gateOpen", lineIds: ["act01-043-pip-gate-reexamine-open"] },
+          { lineIds: ["act01-038-bottlecap-no-toll"], default: true },
+        ],
+        useItem: {
+          button: [
+            {
+              lineIds: ["act01-039-bottlecap-toll-accepted", "act01-040-bottlecap-toll-close", "act01-041-pip-lost-and-underfound-joke", "act01-042-bottlecap-go", "act01-049-pip-transition-out"],
+              effects: { setFlags: ["gateOpen", "actComplete"], removeItems: ["button"] },
+              after: { endGame: true, status: "Act 1 complete. Acts 2 and 3 need their own script/design pass before building continues.", label: "Finish Act 1" },
+            },
+          ],
+        },
+      },
+    },
+    conversations: {
+      "bramble-desk": {
+        introLineIds: [
+          "act01-017-bramble-greeting",
+          "act01-018-pip-greeting-response",
+          "act01-019-bramble-marble-common",
+          "act01-020-pip-popular-how",
+          "act01-021-bramble-deflect",
+          "act01-022-bramble-teach-verbs",
+          "act01-023-pip-already-do-that",
+          "act01-024-bramble-natural-claimant",
+          "act01-025-bramble-quest-lead",
+          "act01-026-pip-quest-lead-interrupt",
+          "act01-027-bramble-quest-lead-gate",
+          "act01-028-pip-what-does-he-want",
+          "act01-029-bramble-toll",
+          "act01-030-pip-any-tips",
+          "act01-031-bramble-toll-hint",
+        ],
+        postGateLineIds: ["act01-044-pip-return-to-bramble", "act01-045-bramble-almost-disappointed"],
+        topics: [
+          { label: "About Bramble", lineIds: ["act01-032-bramble-about-herself", "act01-033-pip-nobody-made-you", "act01-034-bramble-the-tragedy"], effects: { animationState: { objectId: "bramble-actor", state: "talk" } } },
+          { label: "About Old Bottlecap", lineIds: ["act01-035-bramble-about-bottlecap"], effects: { animationState: { objectId: "bramble-actor", state: "talk" } } },
+        ],
+      },
+    },
+  };
+}
+
+function main() {
+  if (!fs.existsSync(lostRoot)) throw new Error(`Lost & Underfound root not found: ${lostRoot}`);
+  const project = buildProject();
+  fs.writeFileSync(outputProject, `${JSON.stringify(project, null, 2)}\n`);
+  const playable = buildPlayableHtml(project);
+  fs.writeFileSync(outputPlayable, playable);
+  ensureDir(lostForgeDir);
+  fs.writeFileSync(path.join(lostForgeDir, "lost-underfound-act1.forge.json"), `${JSON.stringify(project, null, 2)}\n`);
+  fs.writeFileSync(path.join(lostForgeDir, "lost-underfound-act1.playable.html"), playable);
+  console.log(`Wrote ${path.relative(forgeRoot, outputProject)}`);
+  console.log(`Wrote ${path.relative(forgeRoot, outputPlayable)}`);
+  console.log(`Mirrored Forge outputs to ${lostForgeDir}`);
+}
+
+if (require.main === module) main();
+
+module.exports = { buildProject };

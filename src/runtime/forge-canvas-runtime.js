@@ -31,7 +31,7 @@
     main { width:min(1180px,100%); margin:0 auto; padding:14px; }
     header { display:flex; justify-content:space-between; gap:12px; align-items:end; margin-bottom:10px; }
     h1,h2,p { margin:0; } h1 { font-size:clamp(22px,3vw,34px); letter-spacing:0; } h2 { font-size:15px; text-transform:uppercase; letter-spacing:0; color:var(--gold); }
-    p { color:var(--muted); } canvas { display:block; width:100%; aspect-ratio:16/9; border:1px solid var(--line); border-radius:8px; background:#07090d; touch-action:manipulation; }
+    p { color:var(--muted); } canvas { display:block; width:100%; aspect-ratio:16/9; max-height:calc(100vh - 230px); object-fit:contain; border:1px solid var(--line); border-radius:8px; background:#07090d; touch-action:manipulation; }
     .top-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .verbs { display:flex; gap:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
     button { border:1px solid var(--line); background:#2b2119; color:var(--ink); min-height:38px; padding:0 13px; border-radius:6px; cursor:pointer; font:inherit; }
@@ -42,7 +42,7 @@
     .status-grid { display:grid; gap:10px; } .inventory { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:38px; }
     .inventory button.active { background:var(--gold); color:#271706; } .choices { display:grid; gap:8px; margin-top:12px; }
     .line { color:var(--ink); font-size:17px; line-height:1.45; margin-top:8px; } .quiet { color:var(--muted); font-size:13px; }
-    @media (max-width: 840px) { main { padding:10px; } header,.lower { grid-template-columns:1fr; display:grid; } .top-actions { justify-content:space-between; } .verbs { width:100%; } .verbs button { flex:1; min-width:0; } }
+    @media (max-width: 840px) { main { padding:10px; } header,.lower { grid-template-columns:1fr; display:grid; } canvas { max-height:54vh; } .top-actions { justify-content:space-between; } .verbs { width:100%; } .verbs button { flex:1; min-width:0; } }
   </style>
 </head>
 <body data-runtime="${RUNTIME_MARKER}">
@@ -87,6 +87,7 @@
   function createCanvasRuntime({ project, canvas, elements = {}, debugOverlays = null }) {
     const ctx = canvas.getContext("2d");
     const images = new Map();
+    const audio = new Map();
     const gameSpec = project.game || {};
     const lineMap = new Map((project.script?.lines || []).map((line) => [line.line_id, line]));
     const gameState = core.createGameState(project);
@@ -98,6 +99,8 @@
       walkTarget: null,
       pendingInteraction: null,
       ended: false,
+      userActivatedAudio: false,
+      activeEvents: [],
       clockStart: now(),
       raf: null,
     };
@@ -121,6 +124,7 @@
       for (const model of project.assets?.characters || []) {
         for (const frame of model.frames || []) if (frame.dataUrl && !images.has(frame.id)) images.set(frame.id, await loadImage(frame.dataUrl));
       }
+      hydrateAudio();
       setScene(project.activeSceneId);
       renderUi();
       if (gameSpec.startLineIds?.length) playLineSequence(gameSpec.startLineIds, (state.scene.objects || []).find((object) => object.name === "Pip") || null);
@@ -199,13 +203,20 @@
       }
       if (object.kind === "character") {
         const model = (project.assets?.characters || []).find((candidate) => candidate.id === object.modelId);
-        const frame = core.currentFrame(model, object.animationState || "idle", now() - state.clockStart);
+        const elapsed = object.animationStartedAt ? now() - object.animationStartedAt : now() - state.clockStart;
+        const frame = core.currentFrame(model, object.animationState || "idle", elapsed);
         const image = frame ? images.get(frame.id) : null;
         if (image) ctx.drawImage(image, object.x, object.y, object.w, object.h);
         else if (showDebug()) {
           ctx.fillStyle = "rgba(111,168,255,.8)";
           ctx.fillRect(object.x, object.y, object.w, object.h);
         }
+      } else if (object.modelId) {
+        const model = (project.assets?.characters || []).find((candidate) => candidate.id === object.modelId);
+        const elapsed = object.animationStartedAt ? now() - object.animationStartedAt : now() - state.clockStart;
+        const frame = core.currentFrame(model, object.animationState || "idle", elapsed);
+        const image = frame ? images.get(frame.id) : null;
+        if (image) ctx.drawImage(image, object.x, object.y, object.w, object.h);
       } else if (showDebug()) {
         ctx.fillStyle = object.kind === "dialogue" ? "rgba(241,180,92,.2)" : "rgba(239,106,117,.2)";
         ctx.fillRect(object.x, object.y, object.w, object.h);
@@ -282,6 +293,8 @@
         finishSequence();
         return;
       }
+      playLineAudio(line);
+      triggerLineEvent(line);
       showText(displaySpeaker(line.speaker), line.text, state.sequence.object);
       const choices = [];
       if (state.sequence.index < state.sequence.lineIds.length - 1) choices.push({ label: "Next", action: "nextSequence" });
@@ -304,6 +317,7 @@
         return;
       }
       if (after?.endGame) endGame(after);
+      if (after?.status && elements.status) elements.status.textContent = after.status;
       drawChoices([]);
     }
 
@@ -318,15 +332,18 @@
 
     function handleChoice(choice) {
       if (choice.action === "nextSequence") {
+        playCue(gameSpec.audio?.uiSelect);
         state.sequence.index += 1;
         showSequenceLine();
         return;
       }
       if (choice.action === "finishSequence") {
+        playCue(gameSpec.audio?.uiSelect);
         finishSequence();
         return;
       }
       if (choice.lineIds) {
+        playCue(gameSpec.audio?.uiSelect);
         core.applyEffects(gameState, state.scene, choice.effects || {});
         renderUi();
         playLineSequence(choice.lineIds, core.activeObjectByHotspot(state.scene, choice.hotspotId) || null, choice.after || null);
@@ -340,6 +357,8 @@
         playFallback(object);
         return;
       }
+      playCue(gameSpec.audio?.uiSelect);
+      playCue(rule.sfx);
       core.applyEffects(gameState, state.scene, rule.effects || {});
       renderUi();
       let lineIds = rule.lineIds || [];
@@ -368,12 +387,14 @@
       if (hotspotId === "bramble-desk") {
         if (gameState.flags.gateOpen && !gameState.flags.bramblePostGateSeen) {
           core.applyEffects(gameState, state.scene, { setFlags: ["bramblePostGateSeen"] });
+          setAnimation("bramble-actor", "postGate");
           renderUi();
           playLineSequence(spec.postGateLineIds, object);
           return true;
         }
         if (!gameState.flags.brambleIntroComplete) {
           core.applyEffects(gameState, state.scene, { setFlags: ["brambleIntroComplete"] });
+          setAnimation("bramble-actor", "greeting");
           renderUi();
           playLineSequence(spec.introLineIds, object);
           return true;
@@ -421,6 +442,7 @@
 
     function click(x, y) {
       if (state.ended || gameState.ended) return;
+      activateAudio();
       const object = core.objectAt(state.scene, x, y, { includeDialogue: showDebug() });
       if (!object) {
         if (setWalkTarget(x, y)) return;
@@ -523,6 +545,85 @@
     });
     hydrate();
     return { state, gameState, draw, stop, click, setScene, core };
+
+    function hydrateAudio() {
+      for (const cue of project.assets?.audio?.cues || []) {
+        if (!cue.dataUrl || !cue.id) continue;
+        const element = new Audio(cue.dataUrl);
+        element.loop = cue.loop === true;
+        element.volume = Number.isFinite(Number(cue.volume)) ? Number(cue.volume) : 0.5;
+        audio.set(cue.id, element);
+        if (cue.trigger && cue.trigger !== cue.id) audio.set(cue.trigger, element);
+      }
+    }
+
+    function activateAudio() {
+      if (state.userActivatedAudio) return;
+      state.userActivatedAudio = true;
+      playCue(gameSpec.audio?.ambience);
+    }
+
+    function playCue(cueIds) {
+      const ids = Array.isArray(cueIds) ? cueIds : (cueIds ? [cueIds] : []);
+      for (const id of ids) {
+        const source = audio.get(id);
+        if (!source || !state.userActivatedAudio) continue;
+        const sound = source.loop ? source : source.cloneNode(true);
+        sound.volume = source.volume;
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
+      }
+    }
+
+    function playLineAudio(line) {
+      if (!line?.audioDataUrl || !state.userActivatedAudio) return;
+      const voice = new Audio(line.audioDataUrl);
+      voice.volume = 0.85;
+      voice.play().catch(() => {});
+    }
+
+    function triggerLineEvent(line) {
+      playCue(line?.event?.sfx);
+      playCue(line?.event?.music);
+      if (line?.event?.name) triggerEvent(line.event.name);
+    }
+
+    function triggerEvent(eventName) {
+      const spec = gameSpec.eventActions?.[eventName];
+      if (!spec) return;
+      playCue(spec.sfx);
+      playCue(spec.music);
+      const startedAt = now();
+      const event = { eventName, startedAt, durationMs: Number(spec.durationMs) || 1000, restores: [] };
+      for (const action of spec.actors || []) {
+        const object = (state.scene.objects || []).find((candidate) => candidate.id === action.objectId);
+        if (!object) continue;
+        event.restores.push({ object, animationState: object.animationState, hiddenInPlayable: object.hiddenInPlayable });
+        if (action.state) {
+          object.animationState = action.state;
+          object.animationStartedAt = startedAt;
+        }
+        if (typeof action.hidden === "boolean") object.hiddenInPlayable = action.hidden;
+      }
+      state.activeEvents.push(event);
+      setTimeout(() => finishEvent(event), event.durationMs);
+    }
+
+    function finishEvent(event) {
+      state.activeEvents = state.activeEvents.filter((candidate) => candidate !== event);
+      for (const restore of event.restores) {
+        restore.object.animationState = restore.animationState || "idle";
+        restore.object.hiddenInPlayable = restore.hiddenInPlayable;
+        restore.object.animationStartedAt = now();
+      }
+    }
+
+    function setAnimation(objectId, animationState) {
+      const object = (state.scene.objects || []).find((candidate) => candidate.id === objectId);
+      if (!object) return;
+      object.animationState = animationState;
+      object.animationStartedAt = now();
+    }
   }
 
   function loadImage(src) {

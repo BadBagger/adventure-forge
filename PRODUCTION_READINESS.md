@@ -1,26 +1,24 @@
 # Production Readiness Audit
 
-Project: Lost & Underfound - Complete Placeholder Forge Build
+Project: Lost & Underfound - Act 1 Forge Build
 Status: placeholder-ready
 
 ## Summary
 
-- Scenes: 3
-- Character models: 0/8 final
+- Scenes: 1
+- Character models: 0/6 final
 - Cast animation clips: 0/29 final
-- Script lines with voice: 0/66
-- Script lines with lip-sync cues: 0/66
+- Script lines with voice: 45/49
+- Script lines with lip-sync cues: 0/49
 
 ## Blockers
 
-- [art/non-final-model] Pip is concept-pilot, not final-approved.
-- [art/non-final-model] Bramble is concept-pilot, not final-approved.
-- [art/non-final-model] Old Bottlecap is concept-pilot, not final-approved.
-- [art/non-final-model] Scuttle is concept-pilot, not final-approved.
-- [art/non-final-model] Pip Pickup Item is concept-pilot, not final-approved.
-- [art/non-final-model] Pip Handoff to Bramble is concept-pilot, not final-approved.
-- [art/non-final-model] Pip Handoff to Old Bottlecap is concept-pilot, not final-approved.
-- [art/non-final-model] Pip Goofy Throw Failed Handoff is concept-pilot, not final-approved.
+- [art/non-final-model] Pip is provisional, not final-approved.
+- [art/non-final-model] Bramble is provisional, not final-approved.
+- [art/non-final-model] Old Bottlecap is provisional, not final-approved.
+- [art/non-final-model] Scuttle is provisional, not final-approved.
+- [art/non-final-model] Dust Clump is provisional, not final-approved.
+- [art/non-final-model] The Grate is provisional, not final-approved.
 - [art/non-final-cast-clip] character pip.idle is sliced-provisional.
 - [art/non-final-cast-clip] character pip.walk is sliced-provisional.
 - [art/non-final-cast-clip] character pip.turnaround is needs-generation.
@@ -51,95 +49,50 @@ Status: placeholder-ready
 - [art/non-final-cast-clip] prop button.reveal is needs-generation.
 - [art/non-final-cast-clip] prop grate.open is needs-generation.
 - [art/non-final-cast-clip] prop cobwebCurtain.disturbance is needs-generation.
-- [audio/missing-voice] Script line act01-001-pip-cold-open-landing has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-001-pip-cold-open-landing has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-002-pip-cold-open-goal has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-002-pip-cold-open-goal has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-003-pip-ceiling-examine has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-003-pip-ceiling-examine has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-004-pip-dustclump-examine has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-004-pip-dustclump-examine has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-005-pip-dustclump-search-success has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-005-pip-dustclump-search-success has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-006-pip-dustclump-search-again has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-006-pip-dustclump-search-again has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-007-pip-cubbywall-examine-1st has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-007-pip-cubbywall-examine-1st has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-008-pip-cubbywall-rotate-1 has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-008-pip-cubbywall-rotate-1 has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-009-pip-cubbywall-rotate-2 has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-009-pip-cubbywall-rotate-2 has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-010-pip-cubbywall-rotate-3 has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-010-pip-cubbywall-rotate-3 has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-011-pip-signinlog-examine has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-011-pip-signinlog-examine has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-012-pip-popcorn-examine has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-012-pip-popcorn-examine has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-013-pip-popcorn-use-fail has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-013-pip-popcorn-use-fail has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-014-pip-cobweb-examine has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-014-pip-cobweb-examine has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-015-scuttle-cameo-bark has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-015-scuttle-cameo-bark has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-016-pip-cobweb-reaction has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-016-pip-cobweb-reaction has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-017-bramble-greeting has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-017-bramble-greeting has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-018-pip-greeting-response has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-018-pip-greeting-response has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-019-bramble-marble-common has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-019-bramble-marble-common has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-020-pip-popular-how has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-020-pip-popular-how has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-021-bramble-deflect has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-021-bramble-deflect has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-022-bramble-teach-verbs has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-022-bramble-teach-verbs has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-023-pip-already-do-that has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-023-pip-already-do-that has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-024-bramble-natural-claimant has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-024-bramble-natural-claimant has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-025-bramble-quest-lead has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-025-bramble-quest-lead has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-026-pip-quest-lead-interrupt has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-026-pip-quest-lead-interrupt has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-027-bramble-quest-lead-gate has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-027-bramble-quest-lead-gate has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-028-pip-what-does-he-want has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-028-pip-what-does-he-want has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-029-bramble-toll has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-029-bramble-toll has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-030-pip-any-tips has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-030-pip-any-tips has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-031-bramble-toll-hint has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-031-bramble-toll-hint has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-032-bramble-about-herself has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-032-bramble-about-herself has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-033-pip-nobody-made-you has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-033-pip-nobody-made-you has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-034-bramble-the-tragedy has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-034-bramble-the-tragedy has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-035-bramble-about-bottlecap has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-035-bramble-about-bottlecap has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-036-bramble-wrong-action has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-036-bramble-wrong-action has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-037-pip-gate-examine has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-037-pip-gate-examine has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-038-bottlecap-no-toll has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-038-bottlecap-no-toll has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-039-bottlecap-toll-accepted has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-039-bottlecap-toll-accepted has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-040-bottlecap-toll-close has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-040-bottlecap-toll-close has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-041-pip-lost-and-underfound-joke has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-041-pip-lost-and-underfound-joke has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-042-bottlecap-go has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-042-bottlecap-go has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-043-pip-gate-reexamine-open has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-043-pip-gate-reexamine-open has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-044-pip-return-to-bramble has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-044-pip-return-to-bramble has no lip-sync cue reference.
-- [audio/missing-voice] Script line act01-045-bramble-almost-disappointed has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-045-bramble-almost-disappointed has no lip-sync cue reference.
 - [audio/missing-voice] Script line act01-046-pip-fallback-use-scenery has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-046-pip-fallback-use-scenery has no lip-sync cue reference.
@@ -149,40 +102,6 @@ Status: placeholder-ready
 - [lip-sync/missing-lipsync] Script line act01-048-pip-fallback-try-exit has no lip-sync cue reference.
 - [audio/missing-voice] Script line act01-049-pip-transition-out has no voice/audio reference.
 - [lip-sync/missing-lipsync] Script line act01-049-pip-transition-out has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-001-pip-arrival has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-001-pip-arrival has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-002-pip-paperclip-see has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-002-pip-paperclip-see has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-003-pip-paperclip-take has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-003-pip-paperclip-take has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-004-pip-paperclip-again has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-004-pip-paperclip-again has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-005-pip-thread-see has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-005-pip-thread-see has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-006-pip-thread-take has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-006-pip-thread-take has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-007-pip-thread-again has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-007-pip-thread-again has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-008-pip-turnstile-see has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-008-pip-turnstile-see has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-009-pip-turnstile-need-thread has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-009-pip-turnstile-need-thread has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-010-pip-turnstile-open has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-010-pip-turnstile-open has no lip-sync cue reference.
-- [audio/missing-voice] Script line act02-011-pip-to-springs has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act02-011-pip-to-springs has no lip-sync cue reference.
-- [audio/missing-voice] Script line act03-001-pip-spring-arrival has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act03-001-pip-spring-arrival has no lip-sync cue reference.
-- [audio/missing-voice] Script line act03-002-pip-nest-see has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act03-002-pip-nest-see has no lip-sync cue reference.
-- [audio/missing-voice] Script line act03-003-pip-hook-placed has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act03-003-pip-hook-placed has no lip-sync cue reference.
-- [audio/missing-voice] Script line act03-004-pip-need-hook has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act03-004-pip-need-hook has no lip-sync cue reference.
-- [audio/missing-voice] Script line act03-005-pip-marble-recovered has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act03-005-pip-marble-recovered has no lip-sync cue reference.
-- [audio/missing-voice] Script line act03-006-pip-ending has no voice/audio reference.
-- [lip-sync/missing-lipsync] Script line act03-006-pip-ending has no lip-sync cue reference.
 
 ## Next Gate
 

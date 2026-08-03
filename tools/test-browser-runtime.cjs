@@ -90,99 +90,60 @@ async function runStandalonePlayableTest(page) {
     const scene = runtime.state.scene;
     const bramble = scene.objects.find((object) => object.id === "bramble-actor");
     const pip = scene.objects.find((object) => object.id === "pip-actor");
-    const desk = scene.objects.find((object) => object.id === "bramble-desk-hotspot");
-    const deskOccluder = scene.layers.find((layer) => layer.id === "logical-desk-front-occluder");
+    const desk = scene.layers.find((layer) => layer.id === "desk-foreground");
     const order = window.ForgeRuntimeCore.sortedDepthRenderables(scene).map((entry) => entry.item.id);
     const crossedOrder = (() => {
       const originalBaseline = pip.baseline;
-      pip.baseline = 300;
+      pip.baseline = 548;
       const result = window.ForgeRuntimeCore.sortedDepthRenderables(scene).map((entry) => entry.item.id);
       pip.baseline = originalBaseline;
       return result;
     })();
-    const occlusionWarnings = (() => {
-      const originalX = deskOccluder.x;
-      const originalW = deskOccluder.w;
-      const originalVisible = deskOccluder.visible;
-      const originalBaseline = pip.baseline;
-      deskOccluder.x = 0;
-      deskOccluder.w = 20;
-      deskOccluder.visible = true;
-      pip.baseline = 300;
-      const result = window.ForgeRuntimeCore.collectOcclusionWarnings(scene).map((warning) => `${warning.actor.id}:${warning.layer.id}`);
-      deskOccluder.x = originalX;
-      deskOccluder.w = originalW;
-      deskOccluder.visible = originalVisible;
-      pip.baseline = originalBaseline;
-      return result;
-    })();
     const walkPoint = window.ForgeRuntimeCore.nearestWalkPoint(scene, 5000, 5000);
-    const hit = window.ForgeRuntimeCore.objectAt(scene, 360, 280, { ignoreHidden: false, ignoreNonInteractive: false });
+    const hit = window.ForgeRuntimeCore.objectAt(scene, 650, 440, { ignoreHidden: false, ignoreNonInteractive: false });
     return {
+      sceneIds: window.__FORGE_PROJECT__.scenes.map((candidate) => candidate.id),
       brambleAnchor: window.ForgeRuntimeCore.dialogueAnchorFor(scene, bramble)?.id,
       completionIssues: window.ForgeRuntimeCore.collectGameCompletionIssues(window.__FORGE_PROJECT__).map((issue) => issue.message),
-      deskBeforeBramble: order.indexOf(desk.id) < order.indexOf(bramble.id),
+      brambleBeforeDesk: order.indexOf(bramble.id) < order.indexOf(desk.id),
       pipBeforeDeskAfterCrossing: crossedOrder.indexOf(pip.id) < crossedOrder.indexOf(desk.id),
-      occlusionWarnings,
       walkPoint: { x: walkPoint.x, y: walkPoint.y, areaId: walkPoint.area?.id },
       hitId: hit?.id,
     };
   });
+  assert.deepStrictEqual(conformance.sceneIds, ["under-couch-entry"], "standalone build should be Act 1 only");
   assert.strictEqual(conformance.brambleAnchor, "bramble-dialogue-anchor");
   assert.deepStrictEqual(conformance.completionIssues, [], "shipped fixture should pass game-completion QA");
-  assert.strictEqual(conformance.deskBeforeBramble, false, "Bramble should draw before the higher-baseline desk hotspot");
+  assert.strictEqual(conformance.brambleBeforeDesk, true, "Bramble should draw behind the desk foreground occluder");
   assert.strictEqual(conformance.pipBeforeDeskAfterCrossing, true, "actor depth should flip when its baseline crosses a hotspot baseline");
-  assert.ok(conformance.occlusionWarnings.includes("pip-actor:logical-desk-front-occluder"), "exported runtime core should flag missing occlusion coverage");
-  assert.deepStrictEqual(conformance.walkPoint, { x: 932, y: 458, areaId: "walk-band" });
+  assert.deepStrictEqual(conformance.walkPoint, { x: 1516, y: 772, areaId: "walk-band" });
   assert.strictEqual(conformance.hitId, "bramble-desk-hotspot");
 
-  await clickCanvasAt(page, "#game", 360, 280);
+  await drainChoices(page);
+
+  await clickCanvasAt(page, "#game", 650, 440);
   await page.waitForFunction(() => /Walking to Bramble's Desk|Bramble/i.test(document.querySelector("#status")?.textContent || document.querySelector("#speaker")?.textContent || ""), null, { timeout: 5000 });
   await page.waitForFunction(() => /Bramble|Scene Log/i.test(document.querySelector("#speaker")?.textContent || ""), null, { timeout: 5000 });
 
   await drainChoices(page);
   await page.click("#useMode");
-  await clickCanvasAt(page, "#game", 55, 440);
+  await clickCanvasAt(page, "#game", 110, 680);
   await waitForInventory(page, "Button");
   await drainChoices(page);
 
   await selectInventory(page, "Button");
-  await clickCanvasAt(page, "#game", 800, 300);
+  await clickCanvasAt(page, "#game", 1270, 450);
   await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.gateOpen === true, null, { timeout: 10000 });
   await drainChoices(page);
-  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.state.scene.id === "lint-switchyard", null, { timeout: 10000 });
-
-  await page.click("#useMode");
-  await clickCanvasAt(page, "#game", 213, 350);
-  await waitForInventory(page, "Paperclip Hook");
-  await drainChoices(page);
-  await clickCanvasAt(page, "#game", 498, 330);
-  await waitForInventory(page, "Thread Loop");
-  await drainChoices(page);
-
-  await selectInventory(page, "Paperclip Hook");
-  await clickCanvasAt(page, "#game", 790, 320);
-  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.turnstileOpen === true, null, { timeout: 10000 });
-  await drainChoices(page);
-  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.state.scene.id === "spring-nest-finale", null, { timeout: 10000 });
-
-  await selectInventory(page, "Paperclip Hook");
-  await clickCanvasAt(page, "#game", 700, 320);
-  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.hookPlaced === true, null, { timeout: 10000 });
-  await drainChoices(page);
-
-  await selectInventory(page, "Thread Loop");
-  await clickCanvasAt(page, "#game", 700, 320);
-  await page.waitForFunction(() => window.__FORGE_RUNTIME__?.gameState.flags.marbleRecovered === true, null, { timeout: 10000 });
-  await drainChoices(page);
-  await page.waitForFunction(() => /The End/i.test(document.querySelector("#status")?.textContent || ""), null, { timeout: 10000 });
+  await page.waitForFunction(() => /Act 1 complete/i.test(document.querySelector("#status")?.textContent || ""), null, { timeout: 10000 });
   const endState = await page.evaluate(() => ({
     ended: window.__FORGE_RUNTIME__.state.ended,
     gameEnded: window.__FORGE_RUNTIME__.gameState.ended,
-    marbleRecovered: window.__FORGE_RUNTIME__.gameState.flags.marbleRecovered,
-    hasMarble: window.__FORGE_RUNTIME__.gameState.inventory.includes("marble"),
+    actComplete: window.__FORGE_RUNTIME__.gameState.flags.actComplete,
+    sceneId: window.__FORGE_RUNTIME__.state.scene.id,
+    hasButton: window.__FORGE_RUNTIME__.gameState.inventory.includes("button"),
   }));
-  assert.deepStrictEqual(endState, { ended: true, gameEnded: true, marbleRecovered: true, hasMarble: true });
+  assert.deepStrictEqual(endState, { ended: true, gameEnded: true, actComplete: true, sceneId: "under-couch-entry", hasButton: false });
 }
 
 async function main() {
