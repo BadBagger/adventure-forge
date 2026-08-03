@@ -103,6 +103,7 @@
       activeEvents: [],
       clockStart: now(),
       raf: null,
+      grainPattern: null,
     };
 
     function setScene(sceneId) {
@@ -172,6 +173,7 @@
       [...(scene.layers || [])].filter((layer) => layer.visible !== false && !core.isDepthSortedLayer(layer)).sort((a, b) => a.depth - b.depth).forEach(drawLayer);
       if (showDebug()) [...(scene.objects || [])].filter((object) => object.kind === "walkable").forEach(drawObject);
       core.sortedDepthRenderables(scene, { includeDialogue: showDebug() }).forEach((entry) => entry.kind === "layer" ? drawLayer(entry.item) : drawObject(entry.item));
+      drawPostPass(scene);
       drawBubble(state.bubble);
     }
 
@@ -202,6 +204,7 @@
         return;
       }
       if (object.kind === "character") {
+        drawObjectShadow(object);
         const model = (project.assets?.characters || []).find((candidate) => candidate.id === object.modelId);
         const elapsed = object.animationStartedAt ? now() - object.animationStartedAt : now() - state.clockStart;
         const frame = core.currentFrame(model, object.animationState || "idle", elapsed);
@@ -212,6 +215,7 @@
           ctx.fillRect(object.x, object.y, object.w, object.h);
         }
       } else if (object.modelId) {
+        drawObjectShadow(object);
         const model = (project.assets?.characters || []).find((candidate) => candidate.id === object.modelId);
         const elapsed = object.animationStartedAt ? now() - object.animationStartedAt : now() - state.clockStart;
         const frame = core.currentFrame(model, object.animationState || "idle", elapsed);
@@ -225,6 +229,72 @@
         ctx.strokeStyle = object.kind === "character" ? "#6fa8ff" : "#ef6a75";
         ctx.strokeRect(object.x, object.y, object.w, object.h);
       }
+    }
+
+    function drawObjectShadow(object) {
+      if (object.shadow === false) return;
+      const shadow = images.get(state.scene?.integration?.shadowAssetId || "soft-oval-shadow");
+      if (!shadow) return;
+      const w = Number(object.shadowW || object.w * 0.72);
+      const h = Number(object.shadowH || Math.max(12, object.h * 0.14));
+      const x = Number(object.x || 0) + Number(object.w || 0) / 2 - w / 2;
+      const y = core.baseline(object, state.scene) - h * 0.62;
+      ctx.save();
+      ctx.globalAlpha = Number(object.shadowOpacity || 0.38);
+      ctx.drawImage(shadow, x, y, w, h);
+      ctx.restore();
+    }
+
+    function drawPostPass(scene) {
+      const post = scene.postProcessing;
+      if (!post) return;
+      ctx.save();
+      if (post.haze) {
+        ctx.fillStyle = post.haze.color || "rgba(180,150,112,.04)";
+        ctx.fillRect(0, Number(post.haze.y || 0), scene.width, Number(post.haze.h || scene.height * 0.45));
+      }
+      if (post.colorGrade) {
+        ctx.globalCompositeOperation = post.colorGrade.mode || "multiply";
+        ctx.fillStyle = post.colorGrade.color || "rgba(92,50,20,.12)";
+        ctx.fillRect(0, 0, scene.width, scene.height);
+        ctx.globalCompositeOperation = "source-over";
+      }
+      if (post.vignette) {
+        const gradient = ctx.createRadialGradient(scene.width / 2, scene.height * 0.48, scene.width * (post.vignette.inner || 0.42), scene.width / 2, scene.height * 0.5, scene.width * (post.vignette.outer || 0.82));
+        gradient.addColorStop(0, "rgba(0,0,0,0)");
+        gradient.addColorStop(1, `rgba(0,0,0,${Number(post.vignette.opacity || 0.28)})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, scene.width, scene.height);
+      }
+      if (post.grain) {
+        ctx.globalAlpha = Number(post.grain.opacity || 0.04);
+        ctx.fillStyle = grainPattern(Number(post.grain.tileSize || 96));
+        ctx.fillRect(0, 0, scene.width, scene.height);
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+
+    function grainPattern(tileSize) {
+      if (state.grainPattern?.tileSize === tileSize) return state.grainPattern.pattern;
+      const tile = document.createElement("canvas");
+      tile.width = tileSize;
+      tile.height = tileSize;
+      const tileCtx = tile.getContext("2d");
+      const image = tileCtx.createImageData(tileSize, tileSize);
+      let seed = 71237;
+      for (let index = 0; index < image.data.length; index += 4) {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const value = 118 + (seed % 48);
+        image.data[index] = value;
+        image.data[index + 1] = value;
+        image.data[index + 2] = value;
+        image.data[index + 3] = 255;
+      }
+      tileCtx.putImageData(image, 0, 0);
+      const pattern = ctx.createPattern(tile, "repeat");
+      state.grainPattern = { tileSize, pattern };
+      return pattern;
     }
 
     function showDebug() {

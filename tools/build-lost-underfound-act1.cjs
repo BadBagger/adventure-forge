@@ -15,13 +15,13 @@ const sceneSize = { width: 1280, height: 720 };
 
 const hotspotDefs = {
   "couch-ceiling": ["Couch-Bottom Ceiling", 120, 36, 1040, 150],
-  "dust-clump": ["Dust Clump", 96, 575, 120, 90],
-  "cubby-wall": ["Lost & Found Cubby Wall", 36, 212, 235, 410],
-  "sign-in-log": ["Sign-In Log", 478, 386, 170, 72],
-  "popcorn-boulder": ["Popcorn Kernel Boulder", 1002, 538, 190, 134],
-  "cobweb-curtain": ["Cobweb Curtain", 1010, 290, 250, 320],
-  "bramble-desk": ["Bramble's Desk", 390, 395, 430, 170],
-  "toll-gate": ["The Grate / Old Bottlecap", 805, 278, 280, 315],
+  "dust-clump": ["Dust Clump", 82, 582, 130, 92],
+  "cubby-wall": ["Lost & Found Cubby Wall", 32, 178, 258, 410],
+  "sign-in-log": ["Sign-In Log", 498, 286, 250, 112],
+  "popcorn-boulder": ["Popcorn Kernel Boulder", 1012, 540, 170, 112],
+  "cobweb-curtain": ["Cobweb Curtain", 982, 242, 276, 286],
+  "bramble-desk": ["Bramble's Desk", 342, 392, 470, 248],
+  "toll-gate": ["The Grate / Old Bottlecap", 848, 270, 266, 340],
 };
 
 const lineEvents = {
@@ -180,12 +180,11 @@ function buildProject() {
   const castAnimationLibrary = buildCastLibrary();
   const v2 = "art/act01-production/scene/layered-v2";
   const layers = [
-    imageLayer("background-plate", "Entry chamber bare room background plate", "background", `${v2}/bg_room.png`, 0, { depth: 0 }),
-    imageLayer("cubby-wall", "Lost and Underfound cubby wall", "midground", `${v2}/bg_folder_wall.png`, 632, { x: 34, y: 178, w: 250, h: 466, depth: 10 }),
-    imageLayer("wall-note", "Do Not Remove wall note", "midground", `${v2}/wall_note.png`, 174, { x: 210, y: 76, w: 125, h: 110, depth: 11 }),
-    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front.png`, 584, { x: 384, y: 384, w: 450, h: 225, depth: 40 }),
-    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", `${v2}/occluders/gate_front.png`, 612, { x: 804, y: 264, w: 262, h: 336, depth: 42 }),
-    imageLayer("cobweb-curtain", "Cobweb curtain foreground", "occlusion", `${v2}/cobweb.png`, 616, { x: 972, y: 242, w: 285, h: 315, depth: 50 }),
+    imageLayer("background-plate", "Entry chamber furnished room background plate", "background", `${v2}/bg_room.png`, 0, { depth: 0 }),
+    imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front.png`, 616, { x: 342, y: 396, w: 470, h: 238, depth: 40 }),
+    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", `${v2}/occluders/gate_front.png`, 604, { x: 850, y: 274, w: 252, h: 330, depth: 42 }),
+    imageLayer("cobweb-curtain", "Cobweb curtain foreground", "occlusion", `${v2}/cobweb.png`, 610, { x: 988, y: 248, w: 260, h: 264, depth: 50 }),
+    imageLayer("soft-oval-shadow", "Reusable soft oval contact shadow", "background", `${v2}/fx/soft_oval_shadow.png`, 0, { visible: false, shadowAsset: true }),
   ];
   const characters = [
     {
@@ -248,15 +247,15 @@ function buildProject() {
     background: "#21170f",
     layers,
     objects: [
-      { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 44, y: 572, w: 1194, h: 112 },
-      { id: "pip-actor", kind: "character", name: "Pip", x: 705, y: 512, w: 130, h: 188, baseline: 700, modelId: "pip-model", animationState: "idle", hotspotId: "pip-self" },
-      { id: "bramble-actor", kind: "character", name: "Bramble", x: 500, y: 306, w: 245, h: 232, baseline: 538, modelId: "bramble-model", animationState: "idle", nonInteractive: true },
-      { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 880, y: 530, w: 138, h: 100, baseline: 630, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true },
-      { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1010, y: 530, w: 94, h: 52, baseline: 582, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true },
-      { id: "dust-prop", kind: "prop", name: "Dust Clump", x: 104, y: 604, w: 104, h: 76, baseline: 680, modelId: "dust-clump-model", animationState: "idle", hiddenInPlayable: false, nonInteractive: true },
-      { id: "dust-reveal-prop", kind: "prop", name: "Dust Reveal", x: 82, y: 576, w: 150, h: 104, baseline: 680, modelId: "dust-reveal-model", animationState: "reveal", hiddenInPlayable: true, nonInteractive: true },
-      { id: "grate-animation-prop", kind: "prop", name: "Opening Grate", x: 798, y: 418, w: 250, h: 210, baseline: 628, modelId: "grate-model", animationState: "open", hiddenInPlayable: true, nonInteractive: true },
-      { id: "button-floor-prop", kind: "prop", name: "Button", x: 133, y: 616, w: 42, h: 42, baseline: 658, modelId: "button-model", animationState: "idle", hiddenInPlayable: true, nonInteractive: true },
+      { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 64, y: 558, w: 1148, h: 114 },
+      { id: "pip-actor", kind: "character", name: "Pip", x: 686, y: 478, w: 134, h: 194, baseline: 672, modelId: "pip-model", animationState: "idle", hotspotId: "pip-self", shadowW: 82, shadowH: 24, shadowOpacity: 0.48 },
+      { id: "bramble-actor", kind: "character", name: "Bramble", x: 462, y: 350, w: 203, h: 165, baseline: 515, modelId: "bramble-model", animationState: "idle", nonInteractive: true, shadowW: 110, shadowH: 22, shadowOpacity: 0.22 },
+      { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 888, y: 488, w: 160, h: 116, baseline: 604, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true, shadowW: 130, shadowH: 24, shadowOpacity: 0.46 },
+      { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1050, y: 520, w: 124, h: 68, baseline: 588, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true, shadowW: 76, shadowH: 14, shadowOpacity: 0.38 },
+      { id: "dust-prop", kind: "prop", name: "Dust Clump", x: 92, y: 592, w: 108, h: 80, baseline: 672, modelId: "dust-clump-model", animationState: "idle", hiddenInPlayable: false, nonInteractive: true, shadowW: 104, shadowH: 22, shadowOpacity: 0.34 },
+      { id: "dust-reveal-prop", kind: "prop", name: "Dust Reveal", x: 70, y: 568, w: 150, h: 104, baseline: 672, modelId: "dust-reveal-model", animationState: "reveal", hiddenInPlayable: true, nonInteractive: true, shadowW: 118, shadowH: 24, shadowOpacity: 0.28 },
+      { id: "grate-animation-prop", kind: "prop", name: "Opening Grate", x: 850, y: 410, w: 252, h: 194, baseline: 604, modelId: "grate-model", animationState: "open", hiddenInPlayable: true, nonInteractive: true, shadow: false },
+      { id: "button-floor-prop", kind: "prop", name: "Button", x: 132, y: 620, w: 42, h: 42, baseline: 662, modelId: "button-model", animationState: "idle", hiddenInPlayable: true, nonInteractive: true, shadowW: 38, shadowH: 10, shadowOpacity: 0.3 },
       ...Object.entries(hotspotDefs).map(([id, [name, x, y, w, h]]) => ({
         id: `${id}-hotspot`,
         kind: "hitbox",
@@ -273,6 +272,22 @@ function buildProject() {
       { id: "old-bottlecap-dialogue-anchor", kind: "dialogue", name: "Old Bottlecap dialogue anchor", x: 800, y: 430, w: 300, h: 54, baseline: 484 },
       { id: "scuttle-dialogue-anchor", kind: "dialogue", name: "Scuttle dialogue anchor", x: 958, y: 424, w: 240, h: 54, baseline: 478 },
     ],
+    postProcessing: {
+      colorGrade: { color: "rgba(92, 50, 20, 0.13)", mode: "multiply" },
+      vignette: { inner: 0.42, outer: 0.82, opacity: 0.34 },
+      grain: { opacity: 0.055, tileSize: 96 },
+      haze: { color: "rgba(180, 150, 112, 0.05)", y: 0, h: 330 },
+    },
+    integration: {
+      referenceActorHeightPx: 194,
+      scaleCalibration: {
+        pip: 1,
+        bramble: 0.85,
+        oldBottlecap: 0.6,
+        scuttle: 0.35,
+      },
+      shadowAssetId: "soft-oval-shadow",
+    },
     dialogue: [],
     flags: {},
     locked: false,

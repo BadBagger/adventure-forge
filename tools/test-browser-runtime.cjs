@@ -103,21 +103,29 @@ async function runStandalonePlayableTest(page) {
     const hit = window.ForgeRuntimeCore.objectAt(scene, 650, 440, { ignoreHidden: false, ignoreNonInteractive: false });
     return {
       sceneIds: window.__FORGE_PROJECT__.scenes.map((candidate) => candidate.id),
+      layerIds: scene.layers.map((layer) => layer.id),
       brambleAnchor: window.ForgeRuntimeCore.dialogueAnchorFor(scene, bramble)?.id,
       completionIssues: window.ForgeRuntimeCore.collectGameCompletionIssues(window.__FORGE_PROJECT__).map((issue) => issue.message),
       brambleBeforeDesk: order.indexOf(bramble.id) < order.indexOf(desk.id),
       pipBeforeDeskAfterCrossing: crossedOrder.indexOf(pip.id) < crossedOrder.indexOf(desk.id),
       walkPoint: { x: walkPoint.x, y: walkPoint.y, areaId: walkPoint.area?.id },
       hitId: hit?.id,
+      scaleCalibration: scene.integration?.scaleCalibration,
+      postPass: Boolean(scene.postProcessing?.colorGrade && scene.postProcessing?.vignette && scene.postProcessing?.grain),
+      shadowAsset: scene.integration?.shadowAssetId && scene.layers.some((layer) => layer.id === scene.integration.shadowAssetId && layer.visible === false),
     };
   });
   assert.deepStrictEqual(conformance.sceneIds, ["under-couch-entry"], "standalone build should be Act 1 only");
+  assert.deepStrictEqual(conformance.layerIds, ["background-plate", "desk-foreground", "gate-foreground", "cobweb-curtain", "soft-oval-shadow"]);
   assert.strictEqual(conformance.brambleAnchor, "bramble-dialogue-anchor");
   assert.deepStrictEqual(conformance.completionIssues, [], "shipped fixture should pass game-completion QA");
   assert.strictEqual(conformance.brambleBeforeDesk, true, "Bramble should draw behind the desk foreground occluder");
   assert.strictEqual(conformance.pipBeforeDeskAfterCrossing, true, "actor depth should flip when its baseline crosses a hotspot baseline");
-  assert.deepStrictEqual(conformance.walkPoint, { x: 1238, y: 684, areaId: "walk-band" });
+  assert.deepStrictEqual(conformance.walkPoint, { x: 1212, y: 672, areaId: "walk-band" });
   assert.strictEqual(conformance.hitId, "bramble-desk-hotspot");
+  assert.deepStrictEqual(conformance.scaleCalibration, { pip: 1, bramble: 0.85, oldBottlecap: 0.6, scuttle: 0.35 });
+  assert.strictEqual(conformance.postPass, true, "scene should define a single runtime color/vignette/grain post pass");
+  assert.strictEqual(conformance.shadowAsset, true, "scene should hydrate one invisible reusable soft shadow asset");
 
   await drainChoices(page);
 
