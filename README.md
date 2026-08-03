@@ -60,6 +60,7 @@ Then open `http://127.0.0.1:4177/index.html`.
 - Export target settings and package manifest export for standalone HTML or Phaser scaffold handoff.
 - CLI asset pipeline for splitting sprite sheets, importing asset folders, and exporting external-asset package manifests.
 - Project schema reference and CLI validation for broken IDs, scene links, line references, model references, frame indices, geometry, and item-rule references.
+- Production readiness audit for final art, cast-clip approval, voice audio, and lip-sync cue coverage.
 - Playable preview for clicking authored interactions.
 - Complete-game QA checks for placeholder blocker text, scene reachability, obtainable required items, and at least one authored ending.
 - Browser conformance coverage for the complete Lost & Underfound critical path through the ending.
@@ -153,6 +154,14 @@ Validate project JSON before export:
 npm.cmd run validate:project
 ```
 
+Audit final-production readiness:
+
+```powershell
+npm.cmd run production:audit
+```
+
+The current checked-in fixture is expected to report `placeholder-ready`. Use `npm.cmd run production:enforce` only when final art, audio, and lip-sync assets are expected to be complete.
+
 ## Scene image layers and locks
 
 - Use `Background` to import a scene plate image into the active scene.
@@ -226,5 +235,7 @@ Paste one object or an array of patch objects into `Codex Patch`, then use `Prev
 
 ## Next build targets
 
-- Replace placeholder/concept art with final production art and audio.
+- Replace placeholder/concept art with final production art.
+- Add recorded voice/audio references and Rhubarb lip-sync sidecars for all authored script lines.
+- Promote models and cast clips to final only after registration, onion-skin, occlusion, and runtime conformance checks pass.
 - Optional engine-specific runtime bundles beyond the current package manifest scaffold.

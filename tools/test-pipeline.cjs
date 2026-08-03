@@ -7,6 +7,7 @@ const { splitSpritesheet } = require("./split-spritesheet.cjs");
 const { importAssetFolder } = require("./import-asset-folder.cjs");
 const { exportPackage } = require("./export-package.cjs");
 const { validateProject } = require("./validate-project.cjs");
+const { productionReadiness } = require("./production-readiness.cjs");
 
 function writePng(filePath, width, height, paint) {
   const png = new PNG({ width, height });
@@ -59,6 +60,18 @@ function main() {
   const validationMessages = validateProject(brokenProject).map((issue) => issue.message);
   assert.ok(validationMessages.some((message) => message.includes("missing model")), "validator should reject missing model references");
   assert.ok(validationMessages.some((message) => message.includes("missing frame index")), "validator should reject bad animation frame references");
+
+  const placeholderAudit = productionReadiness(project);
+  assert.strictEqual(placeholderAudit.status, "placeholder-ready", "imported provisional art should not be production-ready");
+  assert.ok(placeholderAudit.issues.some((issue) => issue.code === "non-final-model"), "production audit should flag non-final models");
+
+  const finalProject = JSON.parse(JSON.stringify(project));
+  finalProject.assets.characters[0].status = "final";
+  finalProject.assets.castAnimationLibrary = { characters: {}, props: {} };
+  finalProject.script = { lines: [{ line_id: "line-1", speaker: "Mara", text: "Ready.", audio: "voice/line-1.wav", lipSync: "lipsync/line-1.json" }] };
+  finalProject.game = { items: {}, hotspots: {}, startLineIds: ["line-1"] };
+  const finalAudit = productionReadiness(finalProject);
+  assert.strictEqual(finalAudit.status, "production-ready", "final art plus voice and lip-sync should pass production audit");
 
   const outDir = path.join(tmp, "package");
   const exported = exportPackage(projectPath, outDir);

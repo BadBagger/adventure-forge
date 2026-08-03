@@ -22,6 +22,7 @@ This audit maps the requested Codex-first adventure-game authoring UI to the cur
 | Playable/runtime proof | Standalone playable export embeds project data, images, depth sorting, scene exits, clickable interactions, positioned dialogue bubbles, and runtime animation-state playback. |
 | Complete placeholder game build | `adventureforge-playable-fixture.json` contains a complete Lost & Underfound path across Act 1, the Lint Switchyard, and the Spring Nest Finale, with item/flag rules and an authored ending. |
 | Engine/export handoff | Export target/debug controls and `Package` manifest produce standalone or Phaser-scaffold metadata with scenes, assets, depth order, dialogue branches, character frames, QA issues, and adapter notes. |
+| Production readiness gate | `tools/production-readiness.cjs` and `PRODUCTION_READINESS.md` enumerate non-final art, cast-clip, voice, and lip-sync blockers without breaking placeholder playable builds. |
 
 ## Verification Commands
 
@@ -35,6 +36,7 @@ Commands:
 
 ```powershell
 npm.cmd test
+npm.cmd run production:audit
 ```
 
 ## Key Smoke Artifacts
