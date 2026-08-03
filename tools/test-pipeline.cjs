@@ -6,6 +6,7 @@ const { PNG } = require("pngjs");
 const { splitSpritesheet } = require("./split-spritesheet.cjs");
 const { importAssetFolder } = require("./import-asset-folder.cjs");
 const { exportPackage } = require("./export-package.cjs");
+const { validateProject } = require("./validate-project.cjs");
 
 function writePng(filePath, width, height, paint) {
   const png = new PNG({ width, height });
@@ -50,6 +51,14 @@ function main() {
   assert.strictEqual(project.assets.characters.length, 1, "folder import should create one character");
   assert.deepStrictEqual(project.assets.characters[0].animations.stamp.frames, [0, 1], "folder import should map state frames");
   assert.ok(project.assets.characters[0].frames[0].sourcePath.includes("characters/mara/stamp"), "frames should keep external source paths");
+  assert.deepStrictEqual(validateProject(project), [], "imported asset project should pass schema validation");
+
+  const brokenProject = JSON.parse(JSON.stringify(project));
+  brokenProject.scenes[0].objects.push({ id: "bad-character", kind: "character", name: "Bad Character", x: 1, y: 1, w: 10, h: 10, modelId: "missing-model" });
+  brokenProject.assets.characters[0].animations.stamp.frames = [99];
+  const validationMessages = validateProject(brokenProject).map((issue) => issue.message);
+  assert.ok(validationMessages.some((message) => message.includes("missing model")), "validator should reject missing model references");
+  assert.ok(validationMessages.some((message) => message.includes("missing frame index")), "validator should reject bad animation frame references");
 
   const outDir = path.join(tmp, "package");
   const exported = exportPackage(projectPath, outDir);

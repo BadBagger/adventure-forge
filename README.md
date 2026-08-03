@@ -59,6 +59,7 @@ Then open `http://127.0.0.1:4177/index.html`.
 - Standalone playable HTML export with embedded project data, imported assets, and click-to-walk preview behavior.
 - Export target settings and package manifest export for standalone HTML or Phaser scaffold handoff.
 - CLI asset pipeline for splitting sprite sheets, importing asset folders, and exporting external-asset package manifests.
+- Project schema reference and CLI validation for broken IDs, scene links, line references, model references, frame indices, geometry, and item-rule references.
 - Playable preview for clicking authored interactions.
 - Complete-game QA checks for placeholder blocker text, scene reachability, obtainable required items, and at least one authored ending.
 - Browser conformance coverage for the complete Lost & Underfound critical path through the ending.
@@ -144,6 +145,12 @@ The checked-in fixture can also be rebuilt from the command line:
 ```powershell
 cd C:\Users\KyleB\Documents\Codex\2026-08-03\cv\outputs\adventure-forge-repo
 npm.cmd run build:playable
+```
+
+Validate project JSON before export:
+
+```powershell
+npm.cmd run validate:project
 ```
 
 ## Scene image layers and locks
