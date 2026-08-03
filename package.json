@@ -1,0 +1,12 @@
+{
+  "name": "adventure-forge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AdventureForge adventure-game authoring prototype.",
+  "scripts": {
+    "preview:runtime": "python -m http.server 4177",
+    "check": "node --check app.js && node --check tools/build-playable.cjs",
+    "build:playable": "node tools/build-playable.cjs adventureforge-playable-fixture.json adventureforge-pilot.playable.html",
+    "test": "npm run check && npm run build:playable"
+  }
+}
