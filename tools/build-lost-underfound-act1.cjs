@@ -215,9 +215,16 @@ function buildProject() {
         idle: { dir: `${spriteV2}/old-bottlecap/idle`, files: ["old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png"], fps: 5, loop: true },
         tollRefused: { dir: `${spriteV2}/old-bottlecap/toll-refused`, files: ["old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png"], fps: 8, loop: false },
         tollPaid: { dir: `${spriteV2}/old-bottlecap/toll-paid`, count: 7, fps: 8, loop: false, holds: [1, 1, 1, 1, 2, 1, 1] },
-        talk: { dir: `${spriteV2}/old-bottlecap/talk`, count: 4, fps: 6, loop: false },
+        // The generated talk strip is quarantined: every cel truncates the lower cap stack.
+        // Use the reviewed complete idle construction until a full talk strip clears QA.
+        talk: { dir: `${spriteV2}/old-bottlecap/idle`, count: 5, fps: 5, loop: true },
       }),
       scale: 0.6,
+      constructionReview: {
+        fullConstruction: "approved-idle-fallback",
+        reviewArtifact: "art/act01-production/qa/sprite-v2/old-bottlecap-idle-contact-sheet.png",
+        quarantinedSource: `${spriteV2}/old-bottlecap/talk`,
+      },
     },
     {
       ...modelFromDirs("scuttle-model", "Scuttle", "provisional", {

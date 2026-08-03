@@ -67,6 +67,8 @@ assert.ok(pipActor.w >= 145 && pipActor.h >= 175, "Pip actor must be large enoug
 
 const bottlecap = model("old-bottlecap-model");
 Object.keys(bottlecap.animations).forEach((state) => assertMotionBudget(bottlecap, state));
+assert.strictEqual(bottlecap.constructionReview?.fullConstruction, "approved-idle-fallback", "Bottlecap requires an explicit full-construction review before binding frames");
+assert.ok(bottlecap.animations.talk.frames.every((index) => /old-bottlecap\/idle\//.test(bottlecap.frames[index].sourcePath)), "quarantined cropped Bottlecap talk frames must never be bound to Forge");
 const bottlecapBounds = frameBounds(bottlecap, "idle");
 assert.strictEqual(bottlecapBounds.length, 5, "Bottlecap idle must retain a stable held loop");
 assert.strictEqual(new Set(framesFor(bottlecap, "idle").map((frame) => frame.sourcePath)).size, 1, "Bottlecap idle must use one approved full-body source until final animation frames are approved");
