@@ -183,14 +183,14 @@ function buildProject() {
   const layers = [
     imageLayer("background-plate", "Entry chamber furnished room background plate", "background", `${v2}/bg_room.png`, 0, { depth: 0 }),
     imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front.png`, 616, { x: 342, y: 396, w: 470, h: 238, depth: 40 }),
-    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", `${v2}/occluders/gate_front.png`, 604, { x: 850, y: 274, w: 252, h: 330, depth: 42 }),
-    imageLayer("cobweb-curtain", "Cobweb curtain foreground", "occlusion", `${v2}/cobweb.png`, 610, { x: 988, y: 248, w: 260, h: 264, depth: 50 }),
+    imageLayer("gate-foreground", "Gate foreground occluder", "occlusion", `${v2}/occluders/gate_front.png`, 605, { x: 850, y: 274, w: 252, h: 330, depth: 42 }),
+    imageLayer("cobweb-curtain", "Cobweb curtain foreground", "occlusion", `${v2}/cobweb.png`, 611, { x: 970, y: 250, w: 224, h: 246, depth: 50 }),
     imageLayer("soft-oval-shadow", "Reusable soft oval contact shadow", "background", `${v2}/fx/soft_oval_shadow.png`, 0, { visible: false, shadowAsset: true }),
   ];
   const characters = [
     {
       ...modelFromDirs("pip-model", "Pip", "provisional", {
-        idle: { dir: `${spriteV2}/pip/idle`, count: 8, fps: 8, loop: true },
+        idle: { dir: `${spriteV2}/pip/idle`, count: 8, fps: 7, loop: true },
         walk: { dir: `${spriteV2}/pip/walk`, count: 9, fps: 12, loop: true },
         pickup: { dir: `${spriteV2}/pip/dust-reach`, count: 8, fps: 12, loop: false },
         handoff: { dir: `${spriteV2}/pip/toll-paid`, count: 6, fps: 12, loop: false },
@@ -200,8 +200,8 @@ function buildProject() {
     },
     {
       ...modelFromDirs("bramble-model", "Bramble", "provisional", {
-        idle: { dir: `${spriteV2}/bramble/idle`, count: 6, fps: 8, loop: true },
-        talk: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 10, loop: true },
+        idle: { dir: `${spriteV2}/bramble/idle`, count: 6, fps: 6, loop: true },
+        talk: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 6, loop: true },
         greeting: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 10, loop: false },
         questGiver: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 10, loop: false },
         wrongAction: { dir: `${spriteV2}/bramble/talk`, count: 4, fps: 10, loop: false },
@@ -211,10 +211,10 @@ function buildProject() {
     },
     {
       ...modelFromDirs("old-bottlecap-model", "Old Bottlecap", "provisional", {
-        idle: { dir: `${spriteV2}/old-bottlecap/idle`, count: 8, fps: 6, loop: true },
+        idle: { dir: `${spriteV2}/old-bottlecap/idle`, count: 5, fps: 5, loop: true },
         tollRefused: { dir: `${spriteV2}/old-bottlecap/toll-refused`, count: 5, fps: 8, loop: false },
         tollPaid: { dir: `${spriteV2}/old-bottlecap/toll-paid`, count: 7, fps: 8, loop: false, holds: [1, 1, 1, 1, 2, 1, 1] },
-        talk: { dir: `${spriteV2}/old-bottlecap/talk`, count: 4, fps: 8, loop: true },
+        talk: { dir: `${spriteV2}/old-bottlecap/talk`, count: 4, fps: 6, loop: false },
       }),
       scale: 0.6,
     },
@@ -249,7 +249,7 @@ function buildProject() {
     layers,
     objects: [
       { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 64, y: 558, w: 1148, h: 114 },
-      { id: "pip-actor", kind: "character", name: "Pip", x: 686, y: 478, w: 134, h: 194, baseline: 672, modelId: "pip-model", animationState: "idle", hotspotId: "pip-self", shadowW: 82, shadowH: 24, shadowOpacity: 0.48 },
+      { id: "pip-actor", kind: "character", name: "Pip", x: 686, y: 478, w: 134, h: 194, baseline: 672, modelId: "pip-model", animationState: "idle", facing: "right", flipWhenFacingLeft: true, hotspotId: "pip-self", shadowW: 82, shadowH: 24, shadowOpacity: 0.48 },
       { id: "bramble-actor", kind: "character", name: "Bramble", x: 462, y: 350, w: 203, h: 165, baseline: 515, modelId: "bramble-model", animationState: "idle", nonInteractive: true, shadowW: 110, shadowH: 22, shadowOpacity: 0.22 },
       { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 888, y: 488, w: 160, h: 116, baseline: 604, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true, shadowW: 130, shadowH: 24, shadowOpacity: 0.46 },
       { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1050, y: 520, w: 124, h: 68, baseline: 588, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true, shadowW: 76, shadowH: 14, shadowOpacity: 0.38 },

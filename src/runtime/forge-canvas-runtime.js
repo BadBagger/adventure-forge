@@ -37,12 +37,15 @@
     button { border:1px solid var(--line); background:#2b2119; color:var(--ink); min-height:38px; padding:0 13px; border-radius:6px; cursor:pointer; font:inherit; }
     button:hover { border-color:var(--accent); } .verbs button { border:0; border-right:1px solid var(--line); border-radius:0; min-width:92px; }
     .verbs button:last-child { border-right:0; } .verbs button.active { background:var(--accent); color:#10201f; }
-    .lower { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:12px; margin-top:12px; }
+    .dialogue-dock { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px 20px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid var(--gold); border-radius:8px; background:rgba(33,23,15,.98); box-shadow:0 10px 28px rgba(0,0,0,.28); }
+    .dialogue-dock[hidden] { display:none; } .dialogue-copy { min-width:0; } .dialogue-dock h2 { margin-bottom:5px; }
+    .dialogue-dock .line { margin:0; } .dialogue-dock .choices { margin:0; min-width:120px; }
+    .lower { display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
     .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; }
     .status-grid { display:grid; gap:10px; } .inventory { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:38px; }
     .inventory button.active { background:var(--gold); color:#271706; } .choices { display:grid; gap:8px; margin-top:12px; }
     .line { color:var(--ink); font-size:17px; line-height:1.45; margin-top:8px; } .quiet { color:var(--muted); font-size:13px; }
-    @media (max-width: 840px) { main { padding:10px; } header,.lower { grid-template-columns:1fr; display:grid; } canvas { max-height:54vh; } .top-actions { justify-content:space-between; } .verbs { width:100%; } .verbs button { flex:1; min-width:0; } }
+    @media (max-width: 840px) { main { padding:10px; } header,.lower,.dialogue-dock { grid-template-columns:1fr; display:grid; } canvas { max-height:54vh; } .top-actions { justify-content:space-between; } .verbs { width:100%; } .verbs button { flex:1; min-width:0; } .dialogue-dock .choices { min-width:0; } }
   </style>
 </head>
 <body data-runtime="${RUNTIME_MARKER}">
@@ -55,9 +58,12 @@
       </div>
     </header>
     <canvas id="game" width="960" height="540"></canvas>
+    <section id="dialogueDock" class="dialogue-dock" aria-live="polite" hidden>
+      <div class="dialogue-copy"><h2 id="speaker">Dialogue</h2><p id="line" class="line"></p></div>
+      <div id="choices" class="choices"></div>
+    </section>
     <section class="lower">
       <div class="panel status-grid"><p id="status">Click a character or hotspot.</p><div><h2>Inventory</h2><div id="inventory" class="inventory"><span class="quiet">empty</span></div></div></div>
-      <aside class="panel"><h2 id="speaker">Scene Log</h2><p id="line" class="line">No interaction yet.</p><div id="choices" class="choices"></div></aside>
     </section>
   </main>
   ${coreScript}
@@ -73,6 +79,7 @@
         speaker: document.getElementById('speaker'),
         line: document.getElementById('line'),
         choices: document.getElementById('choices'),
+        dialogueDock: document.getElementById('dialogueDock'),
         inventory: document.getElementById('inventory'),
         inspectMode: document.getElementById('inspectMode'),
         useMode: document.getElementById('useMode'),
@@ -162,6 +169,7 @@
       state.player.y += (dy / distance) * step;
       state.player.baseline = state.player.y + state.player.h;
       state.player.animationState = "walk";
+      if (Math.abs(dx) > 0.1) state.player.facing = dx < 0 ? "left" : "right";
     }
 
     function draw() {
@@ -174,7 +182,7 @@
       if (showDebug()) [...(scene.objects || [])].filter((object) => object.kind === "walkable").forEach(drawObject);
       core.sortedDepthRenderables(scene, { includeDialogue: showDebug() }).forEach((entry) => entry.kind === "layer" ? drawLayer(entry.item) : drawObject(entry.item));
       drawPostPass(scene);
-      drawBubble(state.bubble);
+      // Dialogue belongs in the dock below the stage. Never obscure the scene with a speech bubble.
     }
 
     function drawLayer(layer) {
@@ -209,7 +217,7 @@
         const elapsed = object.animationStartedAt ? now() - object.animationStartedAt : now() - state.clockStart;
         const frame = core.currentFrame(model, object.animationState || "idle", elapsed);
         const image = frame ? images.get(frame.id) : null;
-        if (image) ctx.drawImage(image, object.x, object.y, object.w, object.h);
+        if (image) drawSprite(image, object);
         else if (showDebug()) {
           ctx.fillStyle = "rgba(111,168,255,.8)";
           ctx.fillRect(object.x, object.y, object.w, object.h);
@@ -220,7 +228,7 @@
         const elapsed = object.animationStartedAt ? now() - object.animationStartedAt : now() - state.clockStart;
         const frame = core.currentFrame(model, object.animationState || "idle", elapsed);
         const image = frame ? images.get(frame.id) : null;
-        if (image) ctx.drawImage(image, object.x, object.y, object.w, object.h);
+        if (image) drawSprite(image, object);
       } else if (showDebug()) {
         ctx.fillStyle = object.kind === "dialogue" ? "rgba(241,180,92,.2)" : "rgba(239,106,117,.2)";
         ctx.fillRect(object.x, object.y, object.w, object.h);
@@ -229,6 +237,19 @@
         ctx.strokeStyle = object.kind === "character" ? "#6fa8ff" : "#ef6a75";
         ctx.strokeRect(object.x, object.y, object.w, object.h);
       }
+    }
+
+    function drawSprite(image, object) {
+      ctx.save();
+      const flip = object.flipWhenFacingLeft === true && object.facing === "left";
+      if (flip) {
+        ctx.translate(object.x + object.w, object.y);
+        ctx.scale(-1, 1);
+        ctx.drawImage(image, 0, 0, object.w, object.h);
+      } else {
+        ctx.drawImage(image, object.x, object.y, object.w, object.h);
+      }
+      ctx.restore();
     }
 
     function drawObjectShadow(object) {
@@ -336,8 +357,16 @@
     function showText(speakerName, text, object) {
       if (elements.speaker) elements.speaker.textContent = speakerName || "Scene Log";
       if (elements.line) elements.line.textContent = text || "";
-      state.bubble = makeBubble(resolveSpeakerObject(speakerName, object) || object, text);
+      elements.dialogueDock?.removeAttribute("hidden");
+      state.bubble = null;
       drawChoices([]);
+    }
+
+    function clearText() {
+      state.bubble = null;
+      if (elements.speaker) elements.speaker.textContent = "Dialogue";
+      if (elements.line) elements.line.textContent = "";
+      elements.dialogueDock?.setAttribute("hidden", "");
     }
 
     function drawChoices(choices) {
@@ -389,6 +418,7 @@
       if (after?.endGame) endGame(after);
       if (after?.status && elements.status) elements.status.textContent = after.status;
       drawChoices([]);
+      if (!after?.endGame) clearText();
     }
 
     function endGame(after = {}) {

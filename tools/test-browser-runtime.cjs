@@ -84,6 +84,7 @@ async function runEditorPreviewTest(page) {
 async function runStandalonePlayableTest(page) {
   await page.goto(`${BASE_URL}/adventureforge-pilot.playable.html`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => Boolean(window.__FORGE_RUNTIME__ && window.ForgeRuntimeCore && window.ForgeCanvasRuntime));
+  assert.strictEqual(await page.locator("#dialogueDock").isHidden(), false, "opening narration should render in the bottom dialogue dock");
 
   const conformance = await page.evaluate(() => {
     const runtime = window.__FORGE_RUNTIME__;
@@ -128,10 +129,12 @@ async function runStandalonePlayableTest(page) {
   assert.strictEqual(conformance.shadowAsset, true, "scene should hydrate one invisible reusable soft shadow asset");
 
   await drainChoices(page);
+  assert.strictEqual(await page.locator("#dialogueDock").isHidden(), true, "dialogue dock must close after Done");
 
   await clickCanvasAt(page, "#game", 650, 440);
   await page.waitForFunction(() => /Walking to Bramble's Desk|Bramble/i.test(document.querySelector("#status")?.textContent || document.querySelector("#speaker")?.textContent || ""), null, { timeout: 5000 });
   await page.waitForFunction(() => /Bramble|Scene Log/i.test(document.querySelector("#speaker")?.textContent || ""), null, { timeout: 5000 });
+  assert.strictEqual(await page.locator("#dialogueDock").isHidden(), false, "interaction text must render in the bottom dialogue dock");
 
   await drainChoices(page);
   await page.click("#useMode");
