@@ -276,6 +276,20 @@ async function restoreLocalProject(showMessage = true) {
   return true;
 }
 
+async function loadProjectObject(nextProject, label = "Open project") {
+  project = structuredClone(nextProject);
+  selectedId = null;
+  selectedDialogueId = null;
+  selectedAssetId = project.assets?.characters?.[0]?.id || null;
+  selectedAnimationState = "idle";
+  selectedAnimationHitboxId = null;
+  pendingScriptSyncPlan = null;
+  normalizeProject();
+  await hydrateAssetImages();
+  renderAll();
+  setHint(label);
+}
+
 function clearLocalProject() {
   try {
     if (autosaveTimer) window.clearTimeout(autosaveTimer);
@@ -2392,6 +2406,19 @@ $("newProject").onclick = () => {
   renderAll();
 };
 
+$("openLostUnderfound").onclick = async () => {
+  commitHistory("Open Lost & Underfound");
+  try {
+    const response = await fetch("adventureforge-playable-fixture.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    await loadProjectObject(await response.json(), "Opened Lost & Underfound.");
+  } catch (error) {
+    undoStack.pop();
+    renderHistoryControls();
+    setHint(`Could not open Lost & Underfound: ${error.message}`);
+  }
+};
+
 $("exportJson").onclick = () => {
   download(`${slug(project.name)}.adventureforge.json`, JSON.stringify(serializableProject(), null, 2));
 };
@@ -2422,11 +2449,7 @@ $("importJson").onchange = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
   commitHistory(`Import project ${file.name}`);
-  project = JSON.parse(await file.text());
-  normalizeProject();
-  await hydrateAssetImages();
-  selectedId = null;
-  renderAll();
+  await loadProjectObject(JSON.parse(await file.text()), `Imported ${file.name}.`);
 };
 
 $("importFrames").onchange = async (event) => {

@@ -13,6 +13,8 @@ npm.cmd run preview:runtime
 
 Then open `http://127.0.0.1:4177/index.html`.
 
+To edit Lost & Underfound in the editor, click `Open Lost & Underfound` in the Project panel. `Import` is only needed when opening a different `.adventureforge.json` file from disk.
+
 ## What works now
 
 - Shared Forge Runtime Core for depth ordering, hit testing, animation timing, walk clamping, dialogue anchors, inventory/state effects, and playable interaction rules.

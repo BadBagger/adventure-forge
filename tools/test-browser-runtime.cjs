@@ -81,6 +81,24 @@ async function runEditorPreviewTest(page) {
   await page.waitForFunction(() => /Walking to Old well|Old well|stones are damp/i.test(document.querySelector("#dialogueOutput")?.textContent || document.querySelector("#previewStatus")?.textContent || ""), null, { timeout: 5000 });
 }
 
+async function runOpenLostUnderfoundTest(page) {
+  await page.goto(`${BASE_URL}/index.html`, { waitUntil: "networkidle" });
+  await page.locator("#projectName").waitFor();
+  assert.strictEqual(await page.locator("#projectName").inputValue(), "AdventureForge Pilot");
+  await page.click("#openLostUnderfound");
+  await page.waitForFunction(() => document.querySelector("#projectName")?.value.includes("Lost & Underfound"), null, { timeout: 15000 });
+  const loaded = await page.evaluate(() => ({
+    name: document.querySelector("#projectName")?.value,
+    sceneButtons: [...document.querySelectorAll("#sceneList button")].map((button) => button.textContent.trim()),
+    sceneId: window.AdventureForge.project().activeSceneId,
+    scenes: window.AdventureForge.project().scenes.map((scene) => scene.id),
+  }));
+  assert.strictEqual(loaded.name, "Lost & Underfound - Act 1 Forge Build");
+  assert.deepStrictEqual(loaded.scenes, ["under-couch-entry"]);
+  assert.ok(loaded.sceneButtons.some((label) => label.includes("The Crack Under the Couch")), "Lost & Underfound scene should be visible in the scene list");
+  assert.strictEqual(loaded.sceneId, "under-couch-entry");
+}
+
 async function runStandalonePlayableTest(page) {
   await page.goto(`${BASE_URL}/adventureforge-pilot.playable.html`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => Boolean(window.__FORGE_RUNTIME__ && window.ForgeRuntimeCore && window.ForgeCanvasRuntime));
@@ -178,6 +196,7 @@ async function main() {
       throw error;
     });
     await runEditorPreviewTest(page);
+    await runOpenLostUnderfoundTest(page);
     await runStandalonePlayableTest(page);
     console.log("browser runtime conformance tests passed");
   } finally {
