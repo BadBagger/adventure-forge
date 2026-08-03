@@ -704,6 +704,22 @@ textarea {
   margin-top: 12px;
 }
 
+.preview-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.preview-actions button.active,
+.preview-inventory button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.preview-inventory {
+  margin-bottom: 10px;
+}
+
 .asset-list,
 .model-library,
 .frame-list {

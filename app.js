@@ -176,9 +176,7 @@ let statePlaybackTimer = null;
 let statePlaybackIndex = 0;
 let pendingScriptSyncPlan = null;
 let scriptSyncFilter = "all";
-let previewSceneId = null;
-let previewBubble = null;
-let previewLoopId = null;
+let previewRuntime = null;
 let sceneSizeTimer = null;
 const undoStack = [];
 const redoStack = [];
@@ -2972,83 +2970,44 @@ $("zoom100").onclick = () => setEditorZoom("100");
 $("zoom200").onclick = () => setEditorZoom("200");
 
 $("playPreview").onclick = () => {
-  previewSceneId = activeScene().id;
-  previewBubble = null;
+  stopPreviewLoop();
+  const previewProject = serializableProject();
+  previewProject.activeSceneId = activeScene().id;
   $("playModal").classList.remove("hidden");
   $("dialogueOutput").textContent = "Preview started. Click a character or hitbox.";
   $("choiceList").innerHTML = "";
   $("dialogueTitle").textContent = "Scene Log";
   $("previewStatus").textContent = activeScene().name;
-  startPreviewLoop();
+  previewRuntime = window.ForgeCanvasRuntime.createCanvasRuntime({
+    project: previewProject,
+    canvas: previewCanvas,
+    debugOverlays: true,
+    elements: {
+      sceneName: $("previewStatus"),
+      status: $("previewStatus"),
+      speaker: $("dialogueTitle"),
+      line: $("dialogueOutput"),
+      choices: $("choiceList"),
+      inventory: $("previewInventory"),
+      inspectMode: $("previewInspectMode"),
+      useMode: $("previewUseMode"),
+    },
+  });
 };
 
 $("closePreview").onclick = () => {
-  previewBubble = null;
   stopPreviewLoop();
   $("playModal").classList.add("hidden");
 };
 
 function startPreviewLoop() {
-  stopPreviewLoop();
-  const tick = () => {
-    const scene = project.scenes.find((candidate) => candidate.id === previewSceneId) || activeScene();
-    drawStage(pctx, scene, true);
-    drawDialogueBubble(pctx, scene, previewBubble);
-    previewLoopId = window.requestAnimationFrame(tick);
-  };
-  tick();
+  $("playPreview").click();
 }
 
 function stopPreviewLoop() {
-  if (previewLoopId) window.cancelAnimationFrame(previewLoopId);
-  previewLoopId = null;
+  if (previewRuntime) previewRuntime.stop();
+  previewRuntime = null;
 }
-
-previewCanvas.addEventListener("click", (event) => {
-  const scene = project.scenes.find((candidate) => candidate.id === previewSceneId) || activeScene();
-  const point = canvasPoint(event, previewCanvas);
-  const object = objectAt(point.x, point.y, scene);
-  const output = $("dialogueOutput");
-  const choices = $("choiceList");
-  choices.innerHTML = "";
-  if (!object) {
-    previewBubble = null;
-    drawStage(pctx, scene, true);
-    output.textContent = "Nothing responds there.";
-    return;
-  }
-  $("dialogueTitle").textContent = object.name;
-  if (object.targetSceneId) {
-    const targetScene = project.scenes.find((candidate) => candidate.id === object.targetSceneId);
-    if (targetScene) {
-      previewSceneId = targetScene.id;
-      previewBubble = null;
-      $("dialogueTitle").textContent = targetScene.name;
-      $("previewStatus").textContent = targetScene.name;
-      output.textContent = `Entered ${targetScene.name}.`;
-      drawStage(pctx, targetScene, true);
-      return;
-    }
-  }
-  const node = scene.dialogue.find((item) => item.speaker === object.name);
-  output.textContent = node?.line || object.dialogue || object.text || object.note || "No response authored yet.";
-  previewBubble = makeDialogueBubble(scene, object, output.textContent);
-  drawStage(pctx, scene, true);
-  drawDialogueBubble(pctx, scene, previewBubble);
-  if (node?.choices?.length) {
-    node.choices.forEach((choice) => {
-      const button = document.createElement("button");
-      button.textContent = choice.label;
-      button.onclick = () => {
-        output.textContent = choice.response;
-        previewBubble = makeDialogueBubble(scene, object, choice.response);
-        drawStage(pctx, scene, true);
-        drawDialogueBubble(pctx, scene, previewBubble);
-      };
-      choices.appendChild(button);
-    });
-  }
-});
 
 function parsePatch() {
   let patch;
