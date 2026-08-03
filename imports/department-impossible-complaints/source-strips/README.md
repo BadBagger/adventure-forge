@@ -36,6 +36,21 @@ sheet before slicing.
 
 These are the canonical identity references for the next animation pass.
 
+## Model-locked candidate strips
+
+`model-locked-candidates/` contains the first complete candidate strip set
+generated from the approved model sheets:
+
+- Mara: idle, bored A, bored B, walk, talk, pickup, give item.
+- Quire: counter idle, bored paperwork A, bored paperwork B, talk, stamp,
+  exchange.
+- Pigeon: idle, bored A, bored B, bark, delivery reaction.
+- Dill: idle, talk, panic panel.
+
+These are source candidates only. They still need slicing, background cleanup,
+registration, contact-line checks, and in-engine playback QA before they replace
+runtime sprites.
+
 ## Next QA gate
 
 Before slicing into Adventure Forge frames:
