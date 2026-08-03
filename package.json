@@ -5,8 +5,15 @@
   "description": "AdventureForge adventure-game authoring prototype.",
   "scripts": {
     "preview:runtime": "python -m http.server 4177",
-    "check": "node --check app.js && node --check tools/build-playable.cjs",
+    "check": "node --check app.js && node --check tools/build-playable.cjs && node --check tools/split-spritesheet.cjs && node --check tools/import-asset-folder.cjs && node --check tools/export-package.cjs && node --check tools/test-pipeline.cjs",
     "build:playable": "node tools/build-playable.cjs adventureforge-playable-fixture.json adventureforge-pilot.playable.html",
-    "test": "npm run check && npm run build:playable"
+    "split:spritesheet": "node tools/split-spritesheet.cjs",
+    "import:assets": "node tools/import-asset-folder.cjs",
+    "export:package": "node tools/export-package.cjs",
+    "test:pipeline": "node tools/test-pipeline.cjs",
+    "test": "npm run check && npm run build:playable && npm run test:pipeline"
+  },
+  "devDependencies": {
+    "pngjs": "^7.0.0"
   }
 }

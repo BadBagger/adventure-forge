@@ -61,6 +61,19 @@
             Import PNG Frames
             <input id="importFrames" type="file" accept="image/png" multiple />
           </label>
+          <div class="sheet-import">
+            <label class="file-button wide" title="Import a PNG spritesheet and split it into frames">
+              Import Sprite Sheet
+              <input id="importSpriteSheet" type="file" accept="image/png" />
+            </label>
+            <div class="field inline">
+              <label>Frame W <input id="sheetFrameW" class="text-input" type="number" min="1" placeholder="72" /></label>
+              <label>Frame H <input id="sheetFrameH" class="text-input" type="number" min="1" placeholder="148" /></label>
+            </div>
+            <div class="field">
+              <label>State <input id="sheetStateName" class="text-input" placeholder="idle, walk, stamp" /></label>
+            </div>
+          </div>
           <div class="mini-log" id="assetImportLog"></div>
         </div>
 
@@ -218,13 +231,12 @@
               <div class="panel-title">State Timeline</div>
               <div class="field">
                 <label>Animation State</label>
-                <select id="animationState">
-                  <option value="idle">Idle</option>
-                  <option value="walk">Walk</option>
-                  <option value="talk">Talk</option>
-                  <option value="waiting">Waiting</option>
-                  <option value="failed">Failed</option>
-                </select>
+                <select id="animationState"></select>
+              </div>
+              <div class="field inline">
+                <label>New State <input id="newAnimationState" class="text-input" placeholder="stamp, inspect, pickup" /></label>
+                <button id="addAnimationState">Add</button>
+                <button id="deleteAnimationState">Delete</button>
               </div>
               <div class="field">
                 <label>Frame Indices</label>

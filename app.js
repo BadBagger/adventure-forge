@@ -13,6 +13,7 @@ const colors = {
   selected: "#ffffff",
 };
 const animationStates = ["idle", "walk", "talk", "waiting", "failed"];
+const protectedAnimationStates = new Set(["idle", "walk", "talk"]);
 
 const sampleProject = {
   version: 1,
@@ -400,12 +401,7 @@ function normalizeProject() {
     model.registration.baseline ||= model.registration.canvas?.height || null;
     model.animations ||= defaultAnimations(model.frames?.length || 0);
     model.timelineHitboxes ||= [];
-    for (const [state, config] of Object.entries(defaultAnimations(model.frames?.length || 0))) {
-      model.animations[state] ||= config;
-      model.animations[state].frames ||= [];
-      model.animations[state].fps ||= config.fps;
-      model.animations[state].loop = model.animations[state].loop !== false;
-    }
+    for (const state of animationStateNames(model)) ensureAnimationState(model, state);
     repairTimelineHitboxes(model);
   });
   project.script ||= { sourceName: "script.txt", text: "", lastSyncedAt: null };
@@ -427,7 +423,7 @@ function normalizeProject() {
     scene.objects.forEach((object) => {
       object.locked ||= false;
       clampObjectToScene(object, scene);
-      if (object.kind === "character" && !animationStates.includes(object.animationState)) object.animationState = "idle";
+      if (object.kind === "character" && !object.animationState) object.animationState = "idle";
       if (object.kind !== "walkable" && !Number.isFinite(Number(object.baseline))) object.baseline = object.y + object.h;
     });
   });
@@ -738,7 +734,7 @@ function drawFramePreview(model) {
     renderAnimationStateEditor(model);
     return;
   }
-  const state = model.animations?.[selectedAnimationState] || defaultAnimations(model.frames.length)[selectedAnimationState];
+  const state = model.animations?.[selectedAnimationState] || fallbackAnimationConfig(model.frames.length, selectedAnimationState);
   const frameIndex = state?.frames?.[statePlaybackIndex] ?? state?.frames?.[0] ?? 0;
   const frame = model.frames[frameIndex] || model.frames[0];
   const scale = Math.min(220 / frame.width, 220 / frame.height, 3);
@@ -823,6 +819,42 @@ function nextModelName(base) {
   return `${base} ${index}`;
 }
 
+function normalizeAnimationStateName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function animationStateNames(model) {
+  const names = new Set(animationStates);
+  Object.keys(model?.animations || {}).forEach((state) => names.add(state));
+  return [...names].filter(Boolean);
+}
+
+function fallbackAnimationConfig(frameCount, stateName) {
+  return defaultAnimations(frameCount)[stateName] || {
+    frames: frameCount ? [...Array(frameCount).keys()] : [],
+    fps: stateName === "walk" ? 8 : 6,
+    loop: stateName !== "failed",
+  };
+}
+
+function ensureAnimationState(model, stateName, frameIndices = null) {
+  if (!model) return null;
+  const normalized = normalizeAnimationStateName(stateName) || "idle";
+  model.animations ||= defaultAnimations(model.frames?.length || 0);
+  const fallback = fallbackAnimationConfig(model.frames?.length || 0, normalized);
+  model.animations[normalized] ||= {
+    frames: frameIndices || fallback.frames,
+    fps: fallback.fps,
+    loop: fallback.loop,
+  };
+  if (frameIndices) model.animations[normalized].frames = frameIndices;
+  return normalized;
+}
+
 function modelUsage(modelId) {
   const model = project.assets.characters.find((candidate) => candidate.id === modelId);
   return project.scenes.flatMap((scene) => scene.objects
@@ -852,8 +884,8 @@ function removeModelFrame(model, index) {
 function repairModelAnimations(model) {
   model.animations ||= defaultAnimations(model.frames.length);
   const max = model.frames.length - 1;
-  for (const state of ["idle", "walk", "talk", "waiting", "failed"]) {
-    const fallback = defaultAnimations(model.frames.length)[state];
+  for (const state of animationStateNames(model)) {
+    const fallback = fallbackAnimationConfig(model.frames.length, state);
     const config = model.animations[state] || fallback;
     config.frames = [...new Set((config.frames || []).filter((index) => Number.isInteger(index) && index >= 0 && index <= max))];
     if (!model.frames.length) config.frames = [];
@@ -867,8 +899,9 @@ function repairModelAnimations(model) {
 function repairTimelineHitboxes(model) {
   model.timelineHitboxes ||= [];
   const max = model.frames.length - 1;
+  const allowedStates = new Set(animationStateNames(model));
   model.timelineHitboxes = model.timelineHitboxes
-    .filter((box) => box && ["idle", "walk", "talk", "waiting", "failed"].includes(box.state || ""))
+    .filter((box) => box && allowedStates.has(box.state || ""))
     .map((box) => {
       const canvas = model.registration?.canvas || model.frames[0] || { width: 72, height: 148 };
       const frame = clamp(Number(box.frame) || 0, 0, Math.max(0, max));
@@ -901,7 +934,7 @@ function timelineHitboxesFor(model, state = selectedAnimationState, frameIndex =
 
 function defaultTimelineHitbox(model) {
   const canvas = model.registration?.canvas || model.frames[0] || { width: 72, height: 148 };
-  const state = model.animations?.[selectedAnimationState] || defaultAnimations(model.frames.length)[selectedAnimationState];
+  const state = model.animations?.[selectedAnimationState] || fallbackAnimationConfig(model.frames.length, selectedAnimationState);
   const frame = state?.frames?.[0] ?? 0;
   const w = Math.max(12, Math.round((canvas.width || 72) * 0.55));
   const h = Math.max(16, Math.round((canvas.height || 148) * 0.72));
@@ -952,7 +985,7 @@ function modelQaIssueRecords(model) {
   }
   if (!Number.isFinite(Number(model.registration?.baseline))) issues.push({ severity: "error", message: `${model.name}: baseline is missing.`, target });
   const animations = model.animations || {};
-  ["idle", "walk", "talk", "waiting", "failed"].forEach((state) => {
+  animationStateNames(model).forEach((state) => {
     const config = animations[state];
     if (!config?.frames?.length) issues.push({ severity: "error", message: `${model.name}: ${state} animation has no assigned frames.`, target });
     else if (config.frames.some((index) => !Number.isInteger(index) || index < 0 || index >= model.frames.length)) {
@@ -994,6 +1027,10 @@ function renderAnimationStateEditor(model) {
   if (!timeline) return;
   if (!model) {
     $("animationState").disabled = true;
+    $("animationState").innerHTML = "";
+    $("newAnimationState").disabled = true;
+    $("addAnimationState").disabled = true;
+    $("deleteAnimationState").disabled = true;
     $("stateFrames").disabled = true;
     $("stateFps").disabled = true;
     $("stateLoop").disabled = true;
@@ -1002,8 +1039,14 @@ function renderAnimationStateEditor(model) {
     return;
   }
   model.animations ||= defaultAnimations(model.frames.length);
-  const state = model.animations[selectedAnimationState] || defaultAnimations(model.frames.length)[selectedAnimationState];
+  const names = animationStateNames(model);
+  if (!names.includes(selectedAnimationState)) selectedAnimationState = names[0] || "idle";
+  const state = model.animations[selectedAnimationState] || fallbackAnimationConfig(model.frames.length, selectedAnimationState);
+  $("animationState").innerHTML = names.map((stateName) => `<option value="${stateName}">${escapeHtml(stateName)}</option>`).join("");
   $("animationState").disabled = false;
+  $("newAnimationState").disabled = model.locked;
+  $("addAnimationState").disabled = model.locked;
+  $("deleteAnimationState").disabled = model.locked || protectedAnimationStates.has(selectedAnimationState);
   $("stateFrames").disabled = model.locked;
   $("stateFps").disabled = model.locked;
   $("stateLoop").disabled = model.locked;
@@ -1487,7 +1530,8 @@ function renderInspector() {
     `).join("")
     : "";
   const modelOptions = project.assets.characters.map((model) => `<option value="${model.id}" ${object.modelId === model.id ? "selected" : ""}>${escapeHtml(model.name)}</option>`).join("");
-  const animationStateOptions = animationStates.map((state) => `<option value="${state}" ${object.animationState === state ? "selected" : ""}>${escapeHtml(state)}</option>`).join("");
+  const objectModel = project.assets.characters.find((model) => model.id === object.modelId);
+  const animationStateOptions = animationStateNames(objectModel).map((state) => `<option value="${state}" ${object.animationState === state ? "selected" : ""}>${escapeHtml(state)}</option>`).join("");
   const sceneOptions = [`<option value="">No scene change</option>`, ...project.scenes.map((sceneOption) => `<option value="${sceneOption.id}" ${object.targetSceneId === sceneOption.id ? "selected" : ""}>${escapeHtml(sceneOption.name)}</option>`)].join("");
 
   wrap.innerHTML = `
@@ -1616,7 +1660,7 @@ function updateObjectFromInspector(object) {
   if (object.locked) return;
   object.name = $("objName").value;
   object.kind = $("objKind").value;
-  if (object.kind === "character" && !animationStates.includes(object.animationState)) object.animationState = "idle";
+  if (object.kind === "character" && !object.animationState) object.animationState = "idle";
   object.x = Number($("objX").value);
   object.y = Number($("objY").value);
   object.w = Number($("objW").value);
@@ -1672,6 +1716,17 @@ function drawBaselineOverlay(target, scene) {
     target.fillRect(x, Math.max(0, y - 8), right - x, 16);
     target.fillStyle = conflict.severity === "error" ? "#ef6a75" : "#f1b45c";
     target.fillText(`${Math.round(conflict.distance)}px baseline gap`, clamp(x + 4, 4, scene.width - 150), Math.max(14, y - 9));
+  });
+  collectOcclusionQa(scene).forEach((warning) => {
+    const actorRect = actorBodyRect(warning.actor);
+    target.fillStyle = "rgba(241,180,92,0.12)";
+    target.fillRect(actorRect.x, actorRect.y, actorRect.w, actorRect.h);
+    target.strokeStyle = "#f1b45c";
+    target.setLineDash([3, 3]);
+    target.strokeRect(actorRect.x, actorRect.y, actorRect.w, actorRect.h);
+    target.setLineDash([]);
+    target.fillStyle = "#f1b45c";
+    target.fillText("occlusion?", clamp(actorRect.x + 4, 4, scene.width - 100), Math.max(14, actorRect.y - 4));
   });
   entries.forEach((entry, index) => {
     const item = entry.item;
@@ -1861,6 +1916,33 @@ function collectProjectDepthQa() {
   return project.scenes.map((scene) => collectDepthQa(scene));
 }
 
+function collectOcclusionQa(scene = activeScene()) {
+  const warnings = [];
+  const occluders = (scene.layers || []).filter((layer) => layer.visible !== false && (layer.type === "occlusion" || layer.type === "foreground"));
+  const actors = (scene.objects || []).filter((object) => object.kind === "character");
+  actors.forEach((actor) => {
+    const actorBaseline = renderableBaseline(actor, scene);
+    occluders.forEach((layer) => {
+      const layerBaseline = renderableBaseline(layer, scene);
+      if (actorBaseline >= layerBaseline) return;
+      const layerRect = renderableRect(layer, scene);
+      const bodyRect = actorBodyRect(actor);
+      if (!rectsOverlap(bodyRect, layerRect)) {
+        warnings.push({
+          sceneId: scene.id,
+          sceneName: scene.name,
+          severity: "warning",
+          message: `${scene.name}: ${actor.name} is depth-sorted behind ${layer.name || layer.type}, but that occlusion layer does not cover the actor body.`,
+          actor,
+          layer,
+          target: { tab: "editor", sceneId: scene.id, objectId: actor.id },
+        });
+      }
+    });
+  });
+  return warnings;
+}
+
 function depthEntryLabel(entry) {
   return entry.kind === "layer" ? `layer:${entry.item.type}` : entry.item.kind;
 }
@@ -1878,8 +1960,30 @@ function renderableSpan(item, scene) {
   return { start: x, end: x + w };
 }
 
+function renderableRect(item, scene) {
+  return {
+    x: Number(item.x ?? 0),
+    y: Number(item.y ?? 0),
+    w: Number(item.w ?? scene.width),
+    h: Number(item.h ?? scene.height),
+  };
+}
+
+function actorBodyRect(actor) {
+  return {
+    x: Number(actor.x || 0),
+    y: Number(actor.y || 0) + Number(actor.h || 0) * 0.2,
+    w: Number(actor.w || 0),
+    h: Number(actor.h || 0) * 0.8,
+  };
+}
+
 function spansOverlap(a, b) {
   return Math.max(a.start, b.start) <= Math.min(a.end, b.end);
+}
+
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
 function renderableBaseline(item, scene = activeScene()) {
@@ -2468,6 +2572,62 @@ $("importFrames").onchange = async (event) => {
   renderAll();
 };
 
+$("importSpriteSheet").onchange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const frameW = Number($("sheetFrameW").value);
+  const frameH = Number($("sheetFrameH").value);
+  if (!Number.isInteger(frameW) || !Number.isInteger(frameH) || frameW < 1 || frameH < 1) {
+    $("assetImportLog").textContent = "Enter sprite-sheet frame width and height before importing.";
+    event.target.value = "";
+    return;
+  }
+  const frames = await splitSpriteSheetFile(file, frameW, frameH);
+  if (!frames.length) {
+    $("assetImportLog").textContent = "No complete frames were found in that sprite sheet.";
+    event.target.value = "";
+    return;
+  }
+  const selectedModel = getSelectedModel();
+  const appending = selectedModel && !selectedModel.locked;
+  const stateName = normalizeAnimationStateName($("sheetStateName").value) || inferStateName(file.name) || "idle";
+  commitHistory(`${appending ? "Append" : "Import"} sprite sheet ${file.name}`);
+  const model = appending ? selectedModel : {
+    id: uid("model"),
+    name: inferModelName(file.name),
+    role: "character",
+    status: "provisional",
+    locked: false,
+    registration: { canvas: { width: frameW, height: frameH }, anchor: [Math.round(frameW / 2), frameH], baseline: frameH },
+    frames: [],
+    animations: defaultAnimations(0),
+    timelineHitboxes: [],
+  };
+  const startIndex = model.frames.length;
+  frames.forEach((frame, index) => model.frames.push({
+    id: uid("frame"),
+    name: `${file.name.replace(/\.png$/i, "")}_${String(index + 1).padStart(2, "0")}.png`,
+    width: frameW,
+    height: frameH,
+    alphaBounds: frame.alphaBounds,
+    dataUrl: frame.dataUrl,
+    image: frame.image,
+    sourceSheet: file.name,
+  }));
+  model.registration.canvas ||= { width: frameW, height: frameH };
+  model.registration.anchor ||= [Math.round(frameW / 2), frameH];
+  model.registration.baseline ||= frameH;
+  ensureAnimationState(model, stateName, frames.map((_, index) => startIndex + index));
+  repairModelAnimations(model);
+  repairTimelineHitboxes(model);
+  if (!appending) project.assets.characters.push(model);
+  selectedAssetId = model.id;
+  selectedAnimationState = stateName;
+  $("assetImportLog").textContent = `Imported ${frames.length} frame(s) from ${file.name} into ${model.name} / ${stateName}.`;
+  event.target.value = "";
+  renderAll();
+};
+
 $("importScript").onchange = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -2632,6 +2792,38 @@ function handleAnimationStateChange() {
 
 $("animationState").oninput = handleAnimationStateChange;
 $("animationState").onchange = handleAnimationStateChange;
+
+$("addAnimationState").onclick = () => {
+  const model = getSelectedModel();
+  if (!model || model.locked) return;
+  const stateName = normalizeAnimationStateName($("newAnimationState").value);
+  if (!stateName) {
+    setHint("Enter a state name like stamp, inspect, or pickup.");
+    return;
+  }
+  commitHistory(`Add ${stateName} animation state`);
+  selectedAnimationState = ensureAnimationState(model, stateName);
+  $("newAnimationState").value = "";
+  renderAnimationStateEditor(model);
+  drawFramePreview(model);
+  renderQaSummary();
+  renderHandoffSummary();
+};
+
+$("deleteAnimationState").onclick = () => {
+  const model = getSelectedModel();
+  if (!model || model.locked || protectedAnimationStates.has(selectedAnimationState)) return;
+  commitHistory(`Delete ${selectedAnimationState} animation state`);
+  delete model.animations[selectedAnimationState];
+  model.timelineHitboxes = (model.timelineHitboxes || []).filter((box) => box.state !== selectedAnimationState);
+  project.scenes.forEach((scene) => scene.objects.forEach((object) => {
+    if (object.modelId === model.id && object.animationState === selectedAnimationState) object.animationState = "idle";
+  }));
+  selectedAnimationState = "idle";
+  selectedAnimationHitboxId = null;
+  repairModelAnimations(model);
+  renderAll();
+};
 
 ["stateFrames", "stateFps", "stateLoop"].forEach((id) => {
   $(id).oninput = updateAnimationStateFromControls;
@@ -3068,6 +3260,7 @@ function collectQaIssues() {
         issues.push({ severity: "warning", message: `${scene.name}: dialogue speaker ${node.speaker} has no matching character object.`, target: { tab: "dialogue", sceneId: scene.id, dialogueId: node.id } });
       }
     });
+    issues.push(...collectOcclusionQa(scene));
   });
   project.assets.characters.forEach((model) => issues.push(...modelQaIssueRecords(model)));
   return issues;
@@ -3482,11 +3675,16 @@ function renderDepthQaSummary() {
   if (!wrap) return;
   const scene = activeScene();
   const depthQa = collectDepthQa(scene);
+  const occlusionQa = collectOcclusionQa(scene);
   wrap.innerHTML = "";
   if (depthQa.conflicts.length) {
     depthQa.conflicts.forEach((conflict) => wrap.appendChild(depthConflictElement(conflict)));
-  } else {
-    wrap.innerHTML = `<div class="issue ok">No close baseline conflicts in ${escapeHtml(scene.name)}.</div>`;
+  }
+  if (occlusionQa.length) {
+    occlusionQa.forEach((warning) => wrap.appendChild(issueElement(warning)));
+  }
+  if (!depthQa.conflicts.length && !occlusionQa.length) {
+    wrap.innerHTML = `<div class="issue ok">No close baseline or occlusion coverage conflicts in ${escapeHtml(scene.name)}.</div>`;
   }
   const order = document.createElement("div");
   order.className = "depth-order";
@@ -3845,12 +4043,18 @@ function buildPlayableHtml(cleanProject) {
     const ctx = canvas.getContext('2d');
     let scene = project.scenes.find(s => s.id === project.activeSceneId) || project.scenes[0];
     let bubble = null;
+    let player = null;
+    let walkTarget = null;
+    let pendingInteraction = null;
     const images = new Map();
     const animClock = { start: performance.now() };
     setScene(scene.id);
 
     function setScene(sceneId) {
       scene = project.scenes.find(s => s.id === sceneId) || project.scenes[0];
+      player = (scene.objects || []).find(o => o.kind === 'character') || null;
+      walkTarget = null;
+      pendingInteraction = null;
       document.getElementById('sceneName').textContent = scene.name;
     }
 
@@ -3877,8 +4081,30 @@ function buildPlayableHtml(cleanProject) {
     }
 
     function loop() {
+      updateWalk();
       draw();
       requestAnimationFrame(loop);
+    }
+
+    function updateWalk() {
+      if (!player || !walkTarget) return;
+      const current = { x: player.x + player.w / 2, y: baseline(player) };
+      const dx = walkTarget.x - current.x;
+      const dy = walkTarget.y - current.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance <= 3) {
+        if (walkTarget.stateAfter) player.animationState = walkTarget.stateAfter;
+        const nextInteraction = pendingInteraction;
+        walkTarget = null;
+        pendingInteraction = null;
+        if (nextInteraction) interactObject(nextInteraction);
+        return;
+      }
+      const step = Math.min(5, distance);
+      player.x += (dx / distance) * step;
+      player.y += (dy / distance) * step;
+      player.baseline = player.y + player.h;
+      player.animationState = 'walk';
     }
 
     function draw() {
@@ -4057,11 +4283,35 @@ function buildPlayableHtml(cleanProject) {
       return sortedDepthRenderables().filter(e => e.kind === 'object').map(e => e.item).reverse().find(o => x >= o.x && x <= o.x + o.w && y >= o.y && y <= o.y + o.h);
     }
 
-    canvas.addEventListener('click', (event) => {
+    function walkableAt(x, y) {
+      return (scene.objects || []).find(o => o.kind === 'walkable' && x >= o.x && x <= o.x + o.w && y >= o.y && y <= o.y + o.h);
+    }
+
+    function nearestWalkPoint(x, y) {
+      const areas = (scene.objects || []).filter(o => o.kind === 'walkable');
+      if (!areas.length) return { x, y, area: null };
+      let best = null;
+      for (const area of areas) {
+        const px = clamp(x, area.x, area.x + area.w);
+        const py = clamp(y, area.y, area.y + area.h);
+        const score = Math.hypot(px - x, py - y);
+        if (!best || score < best.score) best = { x: px, y: py, area, score };
+      }
+      return best;
+    }
+
+    function setWalkTarget(x, y, object = null) {
+      if (!player) return false;
+      const point = object ? nearestWalkPoint(object.x + object.w / 2, object.y + object.h) : nearestWalkPoint(x, y);
+      if (!point.area && !walkableAt(point.x, point.y)) return false;
+      walkTarget = { x: point.x, y: point.y, stateAfter: player.animationState === 'walk' ? 'idle' : player.animationState || 'idle' };
+      pendingInteraction = object;
+      document.getElementById('status').textContent = object ? 'Walking to ' + object.name + '.' : 'Walking.';
+      return true;
+    }
+
+    function interactObject(object) {
       const rect = canvas.getBoundingClientRect();
-      const x = (event.clientX - rect.left) * (canvas.width / rect.width);
-      const y = (event.clientY - rect.top) * (canvas.height / rect.height);
-      const object = objectAt(x, y);
       const speaker = document.getElementById('speaker');
       const line = document.getElementById('line');
       const choices = document.getElementById('choices');
@@ -4099,6 +4349,23 @@ function buildPlayableHtml(cleanProject) {
         };
         choices.appendChild(button);
       }
+    }
+
+    canvas.addEventListener('click', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+      const object = objectAt(x, y);
+      if (!object) {
+        if (setWalkTarget(x, y)) return;
+        bubble = null;
+        document.getElementById('speaker').textContent = 'Scene Log';
+        document.getElementById('line').textContent = 'Nothing responds there.';
+        draw();
+        return;
+      }
+      if (object !== player && setWalkTarget(x, y, object)) return;
+      interactObject(object);
     });
 
     document.getElementById('resetScene').onclick = () => {
@@ -4135,6 +4402,8 @@ function buildExportPackage(cleanProject) {
     },
     adapter: exportAdapter(target),
     files: exportPackageFiles(cleanProject, target),
+    assetMode: "external-preferred",
+    assetManifest: externalAssetManifest(cleanProject),
     scenes: cleanProject.scenes.map((scene) => ({
       id: scene.id,
       name: scene.name,
@@ -4149,6 +4418,7 @@ function buildExportPackage(cleanProject) {
         depth: layer.depth,
         baseline: isDepthSortedLayer(layer) ? renderableBaseline(layer, scene) : null,
         hasEmbeddedImage: Boolean(layer.dataUrl),
+        sourcePath: layer.sourcePath || null,
       })),
       objects: (scene.objects || []).map((object) => ({
         id: object.id,
@@ -4192,6 +4462,8 @@ function buildExportPackage(cleanProject) {
         height: frame.height,
         alphaBounds: frame.alphaBounds || null,
         embedded: Boolean(frame.dataUrl),
+        sourcePath: frame.sourcePath || null,
+        sourceSheet: frame.sourceSheet || null,
       })),
     })),
     qa: {
@@ -4202,6 +4474,13 @@ function buildExportPackage(cleanProject) {
         distance: Math.round(conflict.distance),
         first: conflict.first.name,
         second: conflict.second.name,
+      }))),
+      occlusionWarnings: cleanProject.scenes.flatMap((scene) => collectOcclusionQa(scene).map((warning) => ({
+        scene: warning.sceneName,
+        severity: warning.severity,
+        actor: warning.actor.name,
+        layer: warning.layer.name || warning.layer.type,
+        message: warning.message,
       }))),
     },
   };
@@ -4228,17 +4507,45 @@ function exportAdapter(target) {
   };
 }
 
+function externalAssetManifest(cleanProject) {
+  return {
+    layers: cleanProject.scenes.flatMap((scene) => (scene.layers || [])
+      .filter((layer) => layer.dataUrl || layer.sourcePath)
+      .map((layer) => ({
+        sceneId: scene.id,
+        layerId: layer.id,
+        name: layer.name,
+        type: layer.type,
+        sourcePath: layer.sourcePath || null,
+        embedded: Boolean(layer.dataUrl),
+      }))),
+    frames: (cleanProject.assets?.characters || []).flatMap((model) => (model.frames || []).map((frame, index) => ({
+      modelId: model.id,
+      frameId: frame.id,
+      index,
+      name: frame.name,
+      sourcePath: frame.sourcePath || null,
+      sourceSheet: frame.sourceSheet || null,
+      embedded: Boolean(frame.dataUrl),
+    }))),
+  };
+}
+
 function exportPackageFiles(cleanProject, target) {
   if (target === "phaser-scaffold") {
     return [
       { path: "package.json", role: "npm manifest", status: "planned" },
       { path: "src/main.js", role: "Phaser boot entry", status: "planned" },
       { path: "src/scenes/*.js", role: "Generated scene adapters", status: "planned" },
-      { path: "assets/characters/*", role: "Externalized PNG frames", status: "planned" },
+      { path: "manifest.json", role: "External asset manifest", status: "exportable" },
+      { path: "project.json", role: "Authoring source with asset references", status: "exportable" },
+      { path: "assets/characters/*", role: "Externalized PNG frames", status: "preferred" },
       { path: `${cleanProject.slug || slug(cleanProject.name)}.adventureforge.json`, role: "Authoring source", status: "included" },
     ];
   }
   return [
+    { path: "manifest.json", role: "External asset manifest", status: "exportable" },
+    { path: "project.json", role: "Authoring source with asset references", status: "exportable" },
     { path: `${cleanProject.slug || slug(cleanProject.name)}.playable.html`, role: "Standalone playable", status: "exportable" },
     { path: `${cleanProject.slug || slug(cleanProject.name)}.adventureforge.json`, role: "Authoring source", status: "exportable" },
   ];
@@ -4295,6 +4602,29 @@ async function imageFileToLayer(file, base) {
   };
 }
 
+async function splitSpriteSheetFile(file, frameW, frameH) {
+  const dataUrl = await fileToDataUrl(file);
+  const image = await loadImage(dataUrl);
+  const columns = Math.floor(image.naturalWidth / frameW);
+  const rows = Math.floor(image.naturalHeight / frameH);
+  const frames = [];
+  const canvas = document.createElement("canvas");
+  canvas.width = frameW;
+  canvas.height = frameH;
+  const target = canvas.getContext("2d");
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      target.clearRect(0, 0, frameW, frameH);
+      target.drawImage(image, column * frameW, row * frameH, frameW, frameH, 0, 0, frameW, frameH);
+      const frameDataUrl = canvas.toDataURL("image/png");
+      const frameImage = await loadImage(frameDataUrl);
+      const alphaBounds = analyzeFrameAlpha(frameImage);
+      if (!alphaBounds.empty) frames.push({ dataUrl: frameDataUrl, image: frameImage, alphaBounds });
+    }
+  }
+  return frames;
+}
+
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -4334,6 +4664,11 @@ function inferModelName(filename) {
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase())
     .trim() || "Imported Character";
+}
+
+function inferStateName(filename) {
+  const lower = String(filename || "").toLowerCase();
+  return animationStates.find((state) => lower.includes(state)) || "";
 }
 
 function hexToRgba(hex, alpha) {

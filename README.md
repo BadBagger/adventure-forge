@@ -26,18 +26,19 @@ Then open `http://127.0.0.1:4177/index.html`.
 - Browser-local autosave with manual save, restore, and clear controls.
 - Scene layer list with visibility controls.
 - Dynamic baseline depth sorting for characters, interaction objects, prop layers, and foreground/occlusion layers.
-- Depth QA panel for reviewing draw order and close-baseline conflicts, with click-through repair targets.
+- Depth QA panel for reviewing draw order, close-baseline conflicts, and missing occlusion coverage, with click-through repair targets.
 - Project name and slug fields for stable export naming.
 - Scene background plate import and foreground/occlusion image-layer import.
 - Scene image layers are included in export JSON and restored on import.
 - Scene layers can be locked before removal or Codex-side updates.
 - Character model library with transparent PNG animation-frame import.
+- Sprite-sheet import that splits a PNG sheet into registered transparent frames by frame width and height.
 - Character model management for adding placeholder models, renaming/role tagging them, deleting unused models, and removing bad imported frames.
 - Imported character frames render directly on the scene canvas and playable preview.
 - Character placement from the model library.
 - Frame registration QA for imported model sheets: shared canvas-size checks, alpha-bounds scans, anchor/baseline fields, status, and model lock state.
 - Onion-skin frame preview for checking transparent PNG animation drift.
-- Animation state timeline assignment for idle, walk, talk, waiting, and failed states.
+- Animation state timeline assignment for idle, walk, talk, waiting, failed, and custom named states.
 - Timeline-bound frame hitboxes for animation states, stored relative to the transparent PNG canvas and drawn over the frame preview.
 - Timed animation state playback for imported transparent PNG frame sequences.
 - Per-character runtime animation state selection for editor preview and standalone playable export.
@@ -52,8 +53,9 @@ Then open `http://127.0.0.1:4177/index.html`.
 - Codex patch intake for `addHitbox`, `addCharacter`, `updateObject`, and `addDialogueNode`.
 - Codex patch review accepts a single patch or an array of patches, shows blocked rows, and applies only selected valid actions.
 - Project JSON import/export.
-- Standalone playable HTML export with embedded project data and imported assets.
+- Standalone playable HTML export with embedded project data, imported assets, and click-to-walk preview behavior.
 - Export target settings and package manifest export for standalone HTML or Phaser scaffold handoff.
+- CLI asset pipeline for splitting sprite sheets, importing asset folders, and exporting external-asset package manifests.
 - Playable preview for clicking authored interactions.
 - MVP validation checks.
 
@@ -102,13 +104,23 @@ After importing transparent PNG frames, open `Characters`:
 
 The `Characters` tab includes a `State Timeline` panel:
 
-- Pick an animation state: idle, walk, talk, waiting, or failed.
+- Pick an animation state. Defaults are idle, walk, talk, waiting, and failed.
+- Add custom states such as stamp, write, inspect, turn, pickup, or react.
+- Delete custom states when they are no longer needed; idle, walk, and talk are protected defaults.
 - Assign frame indices such as `0,1,2`.
 - Set FPS and loop behavior.
 - Use `Assign All` to bind every imported frame to the selected state.
 - Use `Play State` to preview timing in the frame preview canvas.
 - Use `Frame Hitboxes` to add body, interaction, mouth, or prop boxes for a specific state/frame; these appear in QA and Codex handoff.
 - Select a placed character in the Editor and set `Runtime State` to choose which authored animation timeline the preview/playable runtime should draw.
+
+## Sprite sheets and external assets
+
+- Use `Import Sprite Sheet` with a frame width and height to split a PNG sheet into individual transparent frames.
+- Set `State` before import to assign the split frames directly to a named animation state.
+- Use `npm.cmd run split:spritesheet -- sheet.png out-dir --frame-width 72 --frame-height 148 --state walk` to split sheets from the command line.
+- Use `npm.cmd run import:assets -- assets/lost-underfound out.json` to create a Forge project JSON from `characters/<name>/<state>/*.png`.
+- Use `npm.cmd run export:package -- project.adventureforge.json out-dir` to emit `project.json` and `manifest.json` with external asset references.
 
 ## Playable export
 
@@ -157,6 +169,7 @@ npm.cmd run build:playable
 - Use `Fit`, `100%`, and `200%` to switch between whole-scene layout and close repair work; the enlarged stage scrolls while pointer coordinates still map back to authored scene pixels.
 - Use `Labels`, `Hitboxes`, and `Baselines` to switch between clean art inspection, clickable-region repair, and depth-sorting QA.
 - Use the `QA` tab's Depth QA panel to inspect active-scene draw order and jump to renderables whose baselines are too close.
+- Review occlusion warnings when an actor is sorted behind a foreground/counter layer but the layer bounds do not overlap the actor body.
 - Lock or unlock objects directly from the outliner.
 - Drag a handle to resize hitboxes, dialogue anchors, characters, or walkable regions.
 - Use arrow keys to nudge the selected object by 1px, or hold `Shift` to nudge by 10px.

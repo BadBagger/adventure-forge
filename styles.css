@@ -711,6 +711,12 @@ textarea {
   gap: 8px;
 }
 
+.sheet-import {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .asset-chip,
 .model-card,
 .frame-row {
