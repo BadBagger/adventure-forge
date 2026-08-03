@@ -179,6 +179,7 @@ function buildProject() {
   const audio = buildAudio();
   const castAnimationLibrary = buildCastLibrary();
   const v2 = "art/act01-production/scene/layered-v2";
+  const spriteV2 = "art/act01-production/characters-sprite-v2";
   const layers = [
     imageLayer("background-plate", "Entry chamber furnished room background plate", "background", `${v2}/bg_room.png`, 0, { depth: 0 }),
     imageLayer("desk-foreground", "Bramble desk foreground occluder", "occlusion", `${v2}/occluders/desk_front.png`, 616, { x: 342, y: 396, w: 470, h: 238, depth: 40 }),
@@ -189,39 +190,39 @@ function buildProject() {
   const characters = [
     {
       ...modelFromDirs("pip-model", "Pip", "provisional", {
-        idle: { dir: "art/act01-production/characters/pip/idle", count: 8, fps: 8, loop: true },
-        walk: { dir: "art/act01-production/characters/pip/walk", count: 9, fps: 12, loop: true },
-        pickup: { dir: "art/act01-production/characters/pip/dust-reach", count: 8, fps: 12, loop: false },
-        handoff: { dir: "art/act01-production/characters/pip/toll-paid", count: 6, fps: 12, loop: false },
-        relief: { dir: "art/act01-production/characters/pip/toll-paid", count: 6, fps: 10, loop: false },
+        idle: { dir: `${spriteV2}/pip/idle`, count: 8, fps: 8, loop: true },
+        walk: { dir: `${spriteV2}/pip/walk`, count: 9, fps: 12, loop: true },
+        pickup: { dir: `${spriteV2}/pip/dust-reach`, count: 8, fps: 12, loop: false },
+        handoff: { dir: `${spriteV2}/pip/toll-paid`, count: 6, fps: 12, loop: false },
+        relief: { dir: `${spriteV2}/pip/relief`, count: 5, fps: 10, loop: false },
       }),
       scale: 1,
     },
     {
       ...modelFromDirs("bramble-model", "Bramble", "provisional", {
-        idle: { dir: "art/act01-production/characters/bramble/idle", count: 10, fps: 10, loop: true },
-        talk: { dir: "art/act01-production/characters/bramble/talk", count: 6, fps: 10, loop: true },
-        greeting: { dir: "art/act01-production/characters/bramble/talk", count: 5, fps: 10, loop: false },
-        questGiver: { dir: "art/act01-production/characters/bramble/talk", count: 6, fps: 10, loop: false },
-        wrongAction: { dir: "art/act01-production/characters/bramble/talk", count: 4, fps: 10, loop: false },
-        postGate: { dir: "art/act01-production/characters/bramble/talk", count: 4, fps: 10, loop: false },
+        idle: { dir: `${spriteV2}/bramble/idle`, count: 6, fps: 8, loop: true },
+        talk: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 10, loop: true },
+        greeting: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 10, loop: false },
+        questGiver: { dir: `${spriteV2}/bramble/talk`, count: 6, fps: 10, loop: false },
+        wrongAction: { dir: `${spriteV2}/bramble/talk`, count: 4, fps: 10, loop: false },
+        postGate: { dir: `${spriteV2}/bramble/talk`, count: 4, fps: 10, loop: false },
       }),
       scale: 0.85,
     },
     {
       ...modelFromDirs("old-bottlecap-model", "Old Bottlecap", "provisional", {
-        idle: { dir: "art/act01-production/characters/old-bottlecap/idle", count: 8, fps: 6, loop: true },
-        tollRefused: { dir: "art/act01-production/characters/old-bottlecap/toll-refused", count: 5, fps: 8, loop: false },
-        tollPaid: { dir: "art/act01-production/characters/old-bottlecap/toll-paid", count: 7, fps: 8, loop: false, holds: [1, 1, 1, 1, 2, 1, 1] },
-        talk: { dir: "art/act01-production/characters/old-bottlecap/toll-refused", count: 4, fps: 8, loop: true },
+        idle: { dir: `${spriteV2}/old-bottlecap/idle`, count: 8, fps: 6, loop: true },
+        tollRefused: { dir: `${spriteV2}/old-bottlecap/toll-refused`, count: 5, fps: 8, loop: false },
+        tollPaid: { dir: `${spriteV2}/old-bottlecap/toll-paid`, count: 7, fps: 8, loop: false, holds: [1, 1, 1, 1, 2, 1, 1] },
+        talk: { dir: `${spriteV2}/old-bottlecap/talk`, count: 4, fps: 8, loop: true },
       }),
       scale: 0.6,
     },
     {
       ...modelFromDirs("scuttle-model", "Scuttle", "provisional", {
-        dash: { dir: "art/act01-production/characters/scuttle/dash", count: 5, fps: 16, loop: false },
-        talk: { dir: "art/act01-production/characters/scuttle/dash", count: 4, fps: 10, loop: false },
-        idle: { dir: "art/act01-production/characters/scuttle/dash", count: 1, fps: 6, loop: true },
+        dash: { dir: `${spriteV2}/scuttle/dash`, count: 5, fps: 16, loop: false },
+        talk: { dir: `${spriteV2}/scuttle/dash`, count: 4, fps: 10, loop: false },
+        idle: { dir: `${spriteV2}/scuttle/dash`, count: 1, fps: 6, loop: true },
       }),
       scale: 0.35,
     },
