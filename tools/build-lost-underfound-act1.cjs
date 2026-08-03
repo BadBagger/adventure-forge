@@ -212,8 +212,8 @@ function buildProject() {
     },
     {
       ...modelFromDirs("old-bottlecap-model", "Old Bottlecap", "provisional", {
-        idle: { dir: `${spriteV2}/old-bottlecap/idle`, count: 5, fps: 5, loop: true },
-        tollRefused: { dir: `${spriteV2}/old-bottlecap/toll-refused`, count: 5, fps: 8, loop: false },
+        idle: { dir: `${spriteV2}/old-bottlecap/idle`, files: ["old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png", "old_bottlecap_idle_08.png"], fps: 5, loop: true },
+        tollRefused: { dir: `${spriteV2}/old-bottlecap/toll-refused`, files: ["old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png", "old_bottlecap_refuse_05.png"], fps: 8, loop: false },
         tollPaid: { dir: `${spriteV2}/old-bottlecap/toll-paid`, count: 7, fps: 8, loop: false, holds: [1, 1, 1, 1, 2, 1, 1] },
         talk: { dir: `${spriteV2}/old-bottlecap/talk`, count: 4, fps: 6, loop: false },
       }),
@@ -250,7 +250,7 @@ function buildProject() {
     layers,
     objects: [
       { id: "walk-band", kind: "walkable", name: "Under-couch walk plane", x: 64, y: 558, w: 1148, h: 114 },
-      { id: "pip-actor", kind: "character", name: "Pip", x: 701, y: 522, w: 104, h: 150, baseline: 672, modelId: "pip-model", animationState: "idle", facing: "right", flipWhenFacingLeft: true, hotspotId: "pip-self", shadowW: 64, shadowH: 18, shadowOpacity: 0.48 },
+      { id: "pip-actor", kind: "character", name: "Pip", x: 678, y: 492, w: 150, h: 180, baseline: 672, modelId: "pip-model", animationState: "idle", facing: "right", flipWhenFacingLeft: true, hotspotId: "pip-self", shadowW: 82, shadowH: 18, shadowOpacity: 0.48 },
       { id: "bramble-actor", kind: "character", name: "Bramble", x: 515, y: 340, w: 180, h: 175, baseline: 515, modelId: "bramble-model", animationState: "idle", nonInteractive: true, shadowW: 96, shadowH: 20, shadowOpacity: 0.22 },
       { id: "old-bottlecap-actor", kind: "character", name: "Old Bottlecap", x: 888, y: 488, w: 160, h: 116, baseline: 604, modelId: "old-bottlecap-model", animationState: "idle", nonInteractive: true, shadowW: 130, shadowH: 24, shadowOpacity: 0.46 },
       { id: "scuttle-actor", kind: "character", name: "Scuttle", x: 1050, y: 520, w: 124, h: 68, baseline: 588, modelId: "scuttle-model", animationState: "dash", hiddenInPlayable: true, nonInteractive: true, shadowW: 76, shadowH: 14, shadowOpacity: 0.38 },
