@@ -1,6 +1,7 @@
 const assert = require("assert");
 const { spawn } = require("child_process");
 const http = require("http");
+const path = require("path");
 const { chromium } = require("playwright");
 
 const PORT = 4177;
@@ -97,6 +98,23 @@ async function runOpenLostUnderfoundTest(page) {
   assert.deepStrictEqual(loaded.scenes, ["under-couch-entry"]);
   assert.ok(loaded.sceneButtons.some((label) => label.includes("The Crack Under the Couch")), "Lost & Underfound scene should be visible in the scene list");
   assert.strictEqual(loaded.sceneId, "under-couch-entry");
+}
+
+async function runOpenLostUnderfoundFileFallbackTest(page) {
+  const fileUrl = `file:///${path.join(process.cwd(), "index.html").replace(/\\/g, "/")}`;
+  await page.goto(fileUrl);
+  await page.locator("#projectName").waitFor();
+  assert.strictEqual(await page.locator("#projectName").inputValue(), "AdventureForge Pilot");
+  await page.click("#openLostUnderfound");
+  await page.waitForFunction(() => document.querySelector("#projectName")?.value.includes("Lost & Underfound"), null, { timeout: 15000 });
+  const loaded = await page.evaluate(() => ({
+    name: document.querySelector("#projectName")?.value,
+    sceneId: window.AdventureForge.project().activeSceneId,
+    hasBuiltIn: Boolean(window.AdventureForgeBuiltInProjects?.lostUnderfound),
+  }));
+  assert.strictEqual(loaded.name, "Lost & Underfound - Act 1 Forge Build");
+  assert.strictEqual(loaded.sceneId, "under-couch-entry");
+  assert.strictEqual(loaded.hasBuiltIn, true, "file-open fallback should load the built-in project bundle");
 }
 
 async function runStandalonePlayableTest(page) {
@@ -197,6 +215,7 @@ async function main() {
     });
     await runEditorPreviewTest(page);
     await runOpenLostUnderfoundTest(page);
+    await runOpenLostUnderfoundFileFallbackTest(page);
     await runStandalonePlayableTest(page);
     console.log("browser runtime conformance tests passed");
   } finally {

@@ -13,7 +13,7 @@ npm.cmd run preview:runtime
 
 Then open `http://127.0.0.1:4177/index.html`.
 
-To edit Lost & Underfound in the editor, click `Open Lost & Underfound` in the Project panel. `Import` is only needed when opening a different `.adventureforge.json` file from disk.
+To edit Lost & Underfound in the editor, click `Open Lost & Underfound` in the Project panel. `Import` is only needed when opening a different `.adventureforge.json` file from disk. The button first loads `adventureforge-playable-fixture.json`, then falls back to the checked-in `builtin-projects.js` bundle if the browser blocks local file fetches.
 
 ## What works now
 

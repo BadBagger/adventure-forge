@@ -290,6 +290,37 @@ async function loadProjectObject(nextProject, label = "Open project") {
   setHint(label);
 }
 
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[data-dynamic-src="${src}"]`);
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      if (window.AdventureForgeBuiltInProjects?.lostUnderfound) resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = src;
+    script.dataset.dynamicSrc = src;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error(`Could not load ${src}`));
+    document.head.appendChild(script);
+  });
+}
+
+async function loadLostUnderfoundProject() {
+  try {
+    const response = await fetch("adventureforge-playable-fixture.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (fetchError) {
+    await loadScriptOnce("builtin-projects.js");
+    const builtIn = window.AdventureForgeBuiltInProjects?.lostUnderfound;
+    if (!builtIn) throw fetchError;
+    return builtIn;
+  }
+}
+
 function clearLocalProject() {
   try {
     if (autosaveTimer) window.clearTimeout(autosaveTimer);
@@ -2409,13 +2440,11 @@ $("newProject").onclick = () => {
 $("openLostUnderfound").onclick = async () => {
   commitHistory("Open Lost & Underfound");
   try {
-    const response = await fetch("adventureforge-playable-fixture.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    await loadProjectObject(await response.json(), "Opened Lost & Underfound.");
+    await loadProjectObject(await loadLostUnderfoundProject(), "Opened Lost & Underfound.");
   } catch (error) {
     undoStack.pop();
     renderHistoryControls();
-    setHint(`Could not open Lost & Underfound: ${error.message}`);
+    setHint(`Could not open Lost & Underfound: ${error.message}. Try http://127.0.0.1:4177/index.html if this file is open directly.`);
   }
 };
 
