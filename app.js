@@ -4,6 +4,7 @@ const previewCanvas = document.getElementById("previewCanvas");
 const pctx = previewCanvas.getContext("2d");
 const framePreview = document.getElementById("framePreview");
 const fctx = framePreview.getContext("2d");
+const ForgeCore = window.ForgeRuntimeCore;
 
 const colors = {
   hitbox: "#ef6a75",
@@ -1750,6 +1751,7 @@ function drawBaselineOverlay(target, scene) {
 }
 
 function dialogueAnchorFor(scene, object) {
+  if (ForgeCore) return ForgeCore.dialogueAnchorFor(scene, object);
   if (!object) return null;
   if (object.kind === "dialogue") return object;
   const objectWords = dialogueMatchWords(object.name);
@@ -1785,6 +1787,10 @@ function dialogueBubbleBox(target, scene, bubble) {
   const source = anchor || object;
   if (!source) return null;
   target.font = "14px Segoe UI";
+  if (ForgeCore) {
+    const box = ForgeCore.bubbleBox(scene, source, (text) => target.measureText(text).width, bubble.text, { fontSize: 14, maxWidth: 340, maxLines: 4 });
+    return box ? { ...box, stemY: source.y } : null;
+  }
   const maxWidth = Math.min(340, Math.max(220, scene.width - 32));
   const lines = wrapCanvasText(target, bubble.text, maxWidth - 28);
   const width = Math.min(maxWidth, Math.max(190, ...lines.map((line) => target.measureText(line).width + 28)));
@@ -1872,6 +1878,7 @@ function drawBaseLayers(target, scene) {
 }
 
 function sortedDepthRenderables(scene) {
+  if (ForgeCore) return ForgeCore.sortedDepthRenderables(scene, { includeDialogue: true });
   const entries = [
     ...scene.layers.filter((layer) => layer.visible && isDepthSortedLayer(layer)).map((layer, index) => ({ kind: "layer", item: layer, index })),
     ...scene.objects.filter((object) => object.kind !== "walkable").map((object, index) => ({ kind: "object", item: object, index: index + 1000 })),
@@ -1987,6 +1994,7 @@ function rectsOverlap(a, b) {
 }
 
 function renderableBaseline(item, scene = activeScene()) {
+  if (ForgeCore) return ForgeCore.baseline(item, scene);
   if (Number.isFinite(Number(item.baseline))) return Number(item.baseline);
   if (item.kind) return Number(item.y || 0) + Number(item.h || 0);
   return defaultLayerBaseline(item, scene);
@@ -1999,6 +2007,7 @@ function defaultLayerBaseline(layer, scene = activeScene()) {
 }
 
 function isDepthSortedLayer(layer) {
+  if (ForgeCore) return ForgeCore.isDepthSortedLayer(layer);
   return layer.type === "foreground" || layer.type === "prop" || layer.type === "occlusion";
 }
 
@@ -2100,6 +2109,7 @@ function drawObject(target, object, selected, scene = activeScene()) {
 }
 
 function currentRuntimeFrame(model, stateName = "idle") {
+  if (ForgeCore) return ForgeCore.currentFrame(model, stateName, performance.now());
   if (!model?.frames?.length) return null;
   const state = model.animations?.[stateName] || model.animations?.idle;
   if (!state?.frames?.length) return model.frames[0];
@@ -2181,6 +2191,7 @@ function snapBox(object, scene = activeScene()) {
 }
 
 function objectAt(x, y, scene = activeScene()) {
+  if (ForgeCore) return ForgeCore.objectAt(scene, x, y, { includeDialogue: true, ignoreHidden: false, ignoreNonInteractive: false });
   return sortedDepthRenderables(scene)
     .filter((entry) => entry.kind === "object")
     .map((entry) => entry.item)
@@ -2494,8 +2505,8 @@ $("exportJson").onclick = () => {
   download(`${slug(project.name)}.adventureforge.json`, JSON.stringify(serializableProject(), null, 2));
 };
 
-$("exportPlayable").onclick = () => {
-  downloadHtml(`${slug(project.name)}.playable.html`, buildPlayableHtml(serializableProject()));
+$("exportPlayable").onclick = async () => {
+  downloadHtml(`${slug(project.name)}.playable.html`, await buildPlayableHtml(serializableProject()));
 };
 
 $("exportPackage").onclick = () => {
@@ -3996,7 +4007,14 @@ function downloadHtml(filename, html) {
   a.remove();
 }
 
-function buildPlayableHtml(cleanProject) {
+async function buildPlayableHtml(cleanProject) {
+  if (window.ForgeCanvasRuntime?.buildStandaloneHtml) {
+    const [coreSource, runtimeSource] = await Promise.all([
+      fetch("src/runtime/forge-runtime-core.js").then((response) => response.text()),
+      fetch("src/runtime/forge-canvas-runtime.js").then((response) => response.text()),
+    ]);
+    return window.ForgeCanvasRuntime.buildStandaloneHtml(cleanProject, { coreSource, runtimeSource });
+  }
   const projectJson = JSON.stringify(cleanProject).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html lang="en">

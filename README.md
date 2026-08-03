@@ -13,6 +13,7 @@ Then open `http://127.0.0.1:4177/index.html`.
 
 ## What works now
 
+- Shared Forge Runtime Core for depth ordering, hit testing, animation timing, walk clamping, dialogue anchors, inventory/state effects, and playable interaction rules.
 - Visual scene canvas with selectable/editable objects.
 - Hitbox, dialogue anchor, character, and walkable-region tools.
 - Scene exits for turning hitboxes into preview/playable navigation between authored scenes.
@@ -125,6 +126,8 @@ The `Characters` tab includes a `State Timeline` panel:
 ## Playable export
 
 Use `Playable` in the Project panel to export a single `.playable.html` file. It embeds the current project data, imported image layers, transparent PNG character frames, selected runtime animation-state playback, clickable hotspots/characters, dialogue lines, choices, and positioned dialogue bubbles.
+
+The standalone playable and CLI builder both use `src/runtime/forge-runtime-core.js` plus `src/runtime/forge-canvas-runtime.js`. The editor preview also routes high-risk interpretation rules through the same core so baseline order, hit testing, animation frames, walk clamping, and dialogue anchor selection do not drift between editor and game.
 
 Use `Target` and `Debug` in the Project panel to describe the intended runtime export. `Package` writes a `.package.json` manifest with scene geometry, depth order, dialogue branches, character frame metadata, QA issues, and adapter notes for either standalone HTML or a Phaser scaffold.
 
