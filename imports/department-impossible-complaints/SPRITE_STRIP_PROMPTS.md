@@ -6,6 +6,34 @@ Use this for generating Adventure Forge animation strips. Generate **one strip p
 
 Do **not** ask for giant 72-frame sheets. They get small, mushy, and identity-drifty. Use short strips with fewer poses and generate multiple strips when more variety is needed.
 
+## Model-lock rule
+
+Animation starts with **consistent model design**, not motion. Before any walk,
+talk, stamp, idle, or reaction strip is approved, the character must have a
+canonical model sheet in `source-strips/model-sheets/`.
+
+Every animation strip prompt must reference that approved model sheet and keep:
+
+- the same face shape, age, build, proportions, hair, outfit, colors, and props;
+- the same camera height and lens feel;
+- the same full-body height or counter-window height across all poses;
+- the same foot/contact baseline across all poses;
+- the same silhouette language across all cycles for that character.
+
+Reject any strip where the character looks re-cast, aged up/down, changed body
+type, changed coat/hat/visor shape, changed face, or changed relative scale.
+Smooth motion is meaningless if the model changes between frames.
+
+Production order:
+
+1. approve model sheet;
+2. generate one short strip from that model sheet;
+3. run model-consistency QA;
+4. only then slice/register/play it.
+
+Do not treat a nice-looking strip as usable if the model design drifts. Pretty
+wrong is still wrong.
+
 | Cycle | Frames | Strips | Playback FPS | Loop | Use |
 |---|---:|---:|---:|---|---|
 | Idle | 5 | 1 | 6-8 | yes | Default breathing/resting state |
@@ -22,7 +50,7 @@ Frames control smoothness. FPS controls speed. Do not fix bad motion by raising 
 
 Paste this into every strip prompt and only change `[N]`, the character block, and the pose breakdown:
 
-> Single horizontal strip, **[N] poses** left to right, evenly spaced. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no shadows cast on the background. Same character, same outfit, same scale, same camera distance and eye level in every pose. Full body visible in each pose unless the character block explicitly says counter-window upper-body actor. Feet or contact point stay on a consistent ground/contact line, even margins between poses. Consistent flat lighting.
+> Single horizontal strip, **[N] poses** left to right, evenly spaced. Use the approved model sheet for this exact character as the identity reference. Flat solid mid-grey background (#808080), no grid lines, no borders, no text, no shadows cast on the background. Same character, same face, same body proportions, same outfit, same colors, same props, same scale, same camera distance and eye level in every pose. Full body visible in each pose unless the character block explicitly says counter-window upper-body actor. Feet or contact point stay on a consistent ground/contact line, even margins between poses. Consistent flat lighting.
 
 Why grey: it is easy to trim/key out and less likely to contaminate the characters than pink/green.
 
@@ -174,4 +202,10 @@ Personality motion: jittery, apologetic, reactive. Checks gauges, flinches at dr
 - Store frames as ordered arrays per cycle.
 - FPS lives in animation data, not the image.
 - Reject strips with identity drift, detached hands, scale drift, inconsistent ground/contact line, merged poses, shadows on background, or non-even spacing.
+- Compare every pose against the approved model sheet before accepting the strip.
+  The character may act; they may not become a different drawing.
+- Check relative scale between characters before scene integration. Mara, Quire,
+  Pigeon, and Dill must keep believable in-world proportions, and counter-window
+  actors must be judged against their designed counter/window crop, not as free
+  standing full-body sprites.
 - If a strip fails because poses are cramped, regenerate with fewer poses.
