@@ -322,12 +322,14 @@ function splitClip(stripPath, clipConfig, outputDir, prefix) {
     const filename = `${prefix}_${String(index + 1).padStart(2, "0")}.png`;
     const outputPath = path.join(outputDir, filename);
     fs.writeFileSync(outputPath, PNG.sync.write(frame));
+    const encoded = fs.readFileSync(outputPath).toString("base64");
     frames.push({
       id: `${prefix}-${String(index + 1).padStart(2, "0")}`,
       name: filename,
       width: frame.width,
       height: frame.height,
       sourcePath: path.relative(repoRoot, outputPath).replace(/\\/g, "/"),
+      dataUrl: `data:image/png;base64,${encoded}`,
       alphaBounds: alphaBounds(frame),
     });
   }
@@ -433,11 +435,70 @@ function readManifest() {
   return JSON.parse(fs.readFileSync(libraryPath, "utf8"));
 }
 
+const existingSeedMap = [
+  ["characters", "pip", "idle", "art/act01-production/characters/pip/idle", 6],
+  ["characters", "pip", "walk", "art/act01-production/characters/pip/walk", 9],
+  ["characters", "pip", "pickup", "art/act01-production/characters/pip/dust-reach", 8],
+  ["characters", "pip", "handoff", "art/act01-production/characters/pip/toll-paid", 6],
+  ["characters", "bramble", "idle", "art/act01-production/characters/bramble/idle", 6],
+  ["characters", "bramble", "talk", "art/act01-production/characters/bramble/talk", 5],
+  ["characters", "oldBottlecap", "idle", "art/act01-production/characters/old-bottlecap/idle", 5],
+  ["characters", "oldBottlecap", "tollRefused", "art/act01-production/characters/old-bottlecap/toll-refused", 4],
+];
+
+function listPngs(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".png") && !entry.name.toLowerCase().includes("onion"))
+    .map((entry) => path.join(dir, entry.name))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+function composeStrip(framePaths, outputPath) {
+  const frames = framePaths.map((framePath) => PNG.sync.read(fs.readFileSync(framePath)));
+  const frameWidth = Math.max(...frames.map((frame) => frame.width));
+  const frameHeight = Math.max(...frames.map((frame) => frame.height));
+  const strip = new PNG({ width: frameWidth * frames.length, height: frameHeight });
+  for (let i = 0; i < strip.data.length; i += 4) {
+    strip.data[i] = 128;
+    strip.data[i + 1] = 128;
+    strip.data[i + 2] = 128;
+    strip.data[i + 3] = 255;
+  }
+  frames.forEach((frame, index) => {
+    const x = index * frameWidth + Math.round((frameWidth - frame.width) / 2);
+    const y = frameHeight - frame.height;
+    blit(frame, strip, x, y);
+  });
+  ensureDir(path.dirname(outputPath));
+  fs.writeFileSync(outputPath, PNG.sync.write(strip));
+}
+
+function seedExisting(lostRoot) {
+  if (!lostRoot || !fs.existsSync(lostRoot)) throw new Error("usage: node tools/lost-underfound-cast-library.cjs seed-existing <lost-underfound-root>");
+  const library = fs.existsSync(libraryPath) ? readManifest() : writeManifest();
+  for (const [kind, owner, state, relativeDir, count] of existingSeedMap) {
+    const sourceDir = path.join(lostRoot, relativeDir);
+    const frames = listPngs(sourceDir).slice(0, count);
+    if (frames.length !== count) throw new Error(`${owner}.${state} expected ${count} source frames, found ${frames.length}`);
+    const clipConfig = library[kind][owner].states[state];
+    if (clipConfig.n !== count) throw new Error(`${owner}.${state} manifest n ${clipConfig.n} does not match seed count ${count}`);
+    const outputPath = path.join(repoRoot, clipConfig.sourceStrip);
+    composeStrip(frames, outputPath);
+    clipConfig.qaStatus = "seeded-from-existing-production-frames";
+    clipConfig.sourceNote = `Seeded from ${relativeDir}; still provisional under the cast-library QA gate.`;
+  }
+  fs.writeFileSync(libraryPath, JSON.stringify(library, null, 2));
+  return library;
+}
+
 function main() {
   const command = process.argv[2] || "help";
   if (command === "init") {
     const library = writeManifest();
     console.log(`Wrote ${path.relative(repoRoot, libraryPath)} with ${Object.keys(library.characters).length} character(s)`);
+  } else if (command === "seed-existing") {
+    seedExisting(process.argv[3]);
+    console.log("seeded cast animation library strips from existing production frames");
   } else if (command === "validate") {
     const issues = validateLibrary(readManifest());
     if (issues.length) {
@@ -456,10 +517,10 @@ function main() {
     }
     console.log("cast animation library imported");
   } else {
-    console.log("usage: node tools/lost-underfound-cast-library.cjs init|import|validate");
+    console.log("usage: node tools/lost-underfound-cast-library.cjs init|seed-existing <lost-root>|import|validate");
   }
 }
 
 if (require.main === module) main();
 
-module.exports = { buildManifest, validateLibrary, splitClip };
+module.exports = { buildManifest, validateLibrary, splitClip, seedExisting };
